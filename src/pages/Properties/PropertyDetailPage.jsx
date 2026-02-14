@@ -571,7 +571,7 @@ export default function PropertyDetailPage() {
                 </button>
 
                 <p className="text-center text-sm text-gray-500 mb-6">
-                  You won't be charged yet
+                  You won't be charged 
                 </p>
 
                 {/* Property Quick Stats */}
@@ -594,7 +594,7 @@ export default function PropertyDetailPage() {
               {/* Report Listing */}
               <div className="mt-6 text-center">
                 <button className="text-gray-600 hover:text-gray-900 underline text-sm">
-                  Report this listing
+                  Report this 
                 </button>
               </div>
             </div>
