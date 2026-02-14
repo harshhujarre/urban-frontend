@@ -12,7 +12,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isAtTop, setIsAtTop] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authView, setAuthView] = useState("login"); // "login" or "register"
+  const [authView, setAuthView] = useState("login"); // Deprecated - no longer used
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -42,8 +42,7 @@ export default function Navbar() {
     };
   }, [isOpen]);
 
-  const openAuthModal = (view) => {
-    setAuthView(view);
+  const openAuthModal = () => {
     setIsAuthModalOpen(true);
     setIsOpen(false); // Close dropdown when opening modal
   };
@@ -55,8 +54,8 @@ export default function Navbar() {
 
   const handleBecomeHost = () => {
     if (!isAuthenticated) {
-      // Open login modal first
-      openAuthModal("login");
+      // Open auth modal first
+      openAuthModal();
     } else {
       // Navigate to host dashboard
       navigate("/host/dashboard");
@@ -172,16 +171,10 @@ export default function Navbar() {
                       <>
                         {/* Logged Out Menu */}
                         <button
-                          onClick={() => openAuthModal("register")}
+                          onClick={openAuthModal}
                           className="text-left px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gray-50 font-semibold text-sm transition"
                         >
-                          Sign up
-                        </button>
-                        <button
-                          onClick={() => openAuthModal("login")}
-                          className="text-left px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gray-50 text-sm transition"
-                        >
-                          Log in
+                          Log in or sign up
                         </button>
 
                         <div className="h-[1px] bg-gray-200 my-1"></div>
@@ -206,7 +199,6 @@ export default function Navbar() {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-        initialView={authView}
       />
     </>
   );

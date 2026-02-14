@@ -148,7 +148,6 @@ export default function AccountPage() {
                 />
               </div>
 
-              {/* Email Field */}
               <div>
                 <label
                   htmlFor="email"
@@ -156,20 +155,22 @@ export default function AccountPage() {
                 >
                   <Mail className="w-4 h-4" />
                   Email Address
+                  <span className="text-xs text-gray-500 font-normal">
+                    (Read-only)
+                  </span>
                 </label>
                 <input
                   type="email"
                   id="email"
                   name="email"
                   value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                  readOnly
+                  disabled
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
                   placeholder="your.email@example.com"
                 />
               </div>
 
-              {/* Phone Field */}
               <div>
                 <label
                   htmlFor="phone"
@@ -178,7 +179,7 @@ export default function AccountPage() {
                   <Phone className="w-4 h-4" />
                   Phone Number
                   <span className="text-xs text-gray-500 font-normal">
-                    (Optional)
+                    (Verified)
                   </span>
                 </label>
                 <input
@@ -186,9 +187,10 @@ export default function AccountPage() {
                   id="phone"
                   name="phone"
                   value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
-                  placeholder="+1 (555) 000-0000"
+                  readOnly
+                  disabled
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                  placeholder="+91 XXXXXXXXXX"
                 />
               </div>
 

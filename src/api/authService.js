@@ -9,23 +9,12 @@ export const authService = {
    * @param {Object} userData - { name, email, password }
    * @returns {Promise} Response with user data and token
    */
-  async register(userData) {
-    return await apiClient.post("/auth/register", userData);
-  },
+  // ==================== DEPRECATED - Old Email/Password Auth ====================
+  // Removed: register() and login() methods
 
-  /**
-   * Login with email and password
-   * @param {Object} credentials - { email, password }
-   * @returns {Promise} Response with user data and token
-   */
-  async login(credentials) {
-    return await apiClient.post("/auth/login", credentials);
-  },
+  // ==================== ACTIVE AUTH METHODS ====================
 
-  /**
-   * Logout current user (clears cookie)
-   * @returns {Promise} Response with success message
-   */
+  // Logout user
   async logout() {
     return await apiClient.post("/auth/logout");
   },
@@ -34,7 +23,7 @@ export const authService = {
    * Get current authenticated user
    * @returns {Promise} Response with user data
    */
-  async getCurrentUser() {
+  async getMe() {
     return await apiClient.get("/auth/me");
   },
 
@@ -47,11 +36,9 @@ export const authService = {
     return await apiClient.put("/auth/me", userData);
   },
 
-  /**
-   * Send OTP to phone number
-   * @param {string} phoneNumber - 10-digit phone number (without +91)
-   * @returns {Promise} Response with success message and expiry time
-   */
+  // ==================== PHONE/OTP AUTH ====================
+
+  // Send OTP to phone number
   async sendOtp(phoneNumber) {
     return await apiClient.post("/auth/send-otp", { phoneNumber });
   },
@@ -60,24 +47,29 @@ export const authService = {
    * Verify OTP and login/register
    * @param {string} phoneNumber - 10-digit phone number (without +91)
    * @param {string} otp - 4-digit OTP code
-   * @param {string} name - User's name (required for registration)
    * @returns {Promise} Response with user data and token
    */
-  async verifyOtp(phoneNumber, otp, name = null) {
+  // Verify OTP (simplified - no longer creates user)
+  async verifyOtp(phoneNumber, otp) {
     return await apiClient.post("/auth/verify-otp", {
       phoneNumber,
       otp,
-      ...(name && { name }),
     });
   },
 
-  /**
-   * Login/Register with Google
-   * @param {string} credential - Google ID token
-   * @returns {Promise} Response with user data and token
-   */
+  // ==================== GOOGLE AUTH ====================
+
+  // Google login (may require phone verification)
   async googleLogin(credential) {
     return await apiClient.post("/auth/google-login", { credential });
+  },
+
+  // ==================== COMPLETE SIGNUP ====================
+
+  // Complete signup with all user data (after phone verification)
+  async completeSignup(signupData) {
+    // signupData: { phone, name, city, googleId?, email?, profilePhoto?, role? }
+    return await apiClient.post("/auth/complete-signup", signupData);
   },
 };
 

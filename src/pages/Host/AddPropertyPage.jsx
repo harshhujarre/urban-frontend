@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import {
@@ -546,6 +546,7 @@ function Stage2({
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
+            <MapUpdater coordinates={formData.coordinates} />
             <LocationMarker setCoordinates={setCoordinates} />
             <Marker
               position={[
@@ -570,13 +571,26 @@ function Stage2({
   );
 }
 
-// Helper component to handle map clicks
+// Helper component to handle map clicks and update map view when coordinates change
 function LocationMarker({ setCoordinates }) {
-  useMapEvents({
+  const map = useMapEvents({
     click(e) {
       setCoordinates(e.latlng.lat, e.latlng.lng);
     },
   });
+  return null;
+}
+
+// Component to update map view when coordinates change (e.g., when using current location)
+function MapUpdater({ coordinates }) {
+  const map = useMapEvents({});
+
+  useEffect(() => {
+    if (coordinates.latitude && coordinates.longitude) {
+      map.setView([coordinates.latitude, coordinates.longitude], 13);
+    }
+  }, [coordinates.latitude, coordinates.longitude, map]);
+
   return null;
 }
 

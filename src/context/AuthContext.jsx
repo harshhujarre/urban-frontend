@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
    */
   const validateTokenInBackground = async () => {
     try {
-      const data = await authService.getCurrentUser();
+      const data = await authService.getMe();
       // Update cache with fresh data
       updateAuthCache(data.user);
       setUser(data.user);
@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }) => {
    */
   const loadUser = async () => {
     try {
-      const data = await authService.getCurrentUser();
+      const data = await authService.getMe();
       setUser(data.user);
       setIsAuthenticated(true);
       updateAuthCache(data.user); // Cache the user data
@@ -100,29 +100,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /**
-   * Login user
-   * @param {Object} credentials - { email, password }
-   */
-  const login = async (credentials) => {
-    const data = await authService.login(credentials);
-    setUser(data.user);
-    setIsAuthenticated(true);
-    updateAuthCache(data.user); // Cache user data
-    return data;
-  };
+  // ==================== DEPRECATED - Old Email/Password ====================
+  // Removed: login() and register() methods
 
-  /**
-   * Register new user
-   * @param {Object} userData - { name, email, password }
-   */
-  const register = async (userData) => {
-    const data = await authService.register(userData);
-    setUser(data.user);
-    setIsAuthenticated(true);
-    updateAuthCache(data.user); // Cache user data
-    return data;
-  };
+  // ==================== PHONE/OTP AUTH ====================
 
   /**
    * Send OTP to phone number
@@ -134,25 +115,58 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Verify OTP and login/register
+   * Verify OTP (may require signup completion)
    * @param {string} phoneNumber - 10-digit phone number
    * @param {string} otp - 4-digit OTP code
-   * @param {string} name - User's name (for new users)
+   * @returns {Object} Response - may contain {needsSignup: true} or {token, user}
    */
-  const verifyOtp = async (phoneNumber, otp, name) => {
-    const data = await authService.verifyOtp(phoneNumber, otp, name);
+  const verifyOtp = async (phoneNumber, otp) => {
+    const data = await authService.verifyOtp(phoneNumber, otp);
+
+    // Check if signup completion is needed
+    if (data.needsSignup) {
+      // Return data with needsSignup flag - don't login yet
+      return data;
+    }
+
+    // Existing user - login
     setUser(data.user);
     setIsAuthenticated(true);
     updateAuthCache(data.user);
     return data;
   };
 
+  // ==================== GOOGLE AUTH ====================
+
   /**
-   * Login/Register with Google
+   * Google login (may require phone verification)
    * @param {string} credential - Google ID token
+   * @returns {Object} Response - may contain {needsPhoneVerification: true} or {token, user}
    */
   const googleLogin = async (credential) => {
     const data = await authService.googleLogin(credential);
+
+    // Check if phone verification is needed
+    if (data.needsPhoneVerification) {
+      // Return data with needsPhoneVerification flag - don't login yet
+      return data;
+    }
+
+    // Existing user with phone - login
+    setUser(data.user);
+    setIsAuthenticated(true);
+    updateAuthCache(data.user);
+    return data;
+  };
+
+  // ==================== COMPLETE SIGNUP ====================
+
+  /**
+   * Complete signup with all required data
+   * @param {Object} signupData - { phone, name, city, googleId?, email?, profilePhoto? }
+   */
+  const completeSignup = async (signupData) => {
+    const data = await authService.completeSignup(signupData);
     setUser(data.user);
     setIsAuthenticated(true);
     updateAuthCache(data.user);
@@ -206,11 +220,10 @@ export const AuthProvider = ({ children }) => {
         user,
         loading,
         isAuthenticated,
-        login,
-        register,
         sendOtp,
         verifyOtp,
         googleLogin,
+        completeSignup,
         logout,
         loadUser,
         updateUser,

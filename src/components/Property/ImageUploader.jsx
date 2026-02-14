@@ -4,7 +4,7 @@ import { X, Upload, Trash2, Loader2 } from "lucide-react";
 export default function ImageUploader({
   images,
   onImagesChange,
-  maxImages = 4,
+  maxImages = 5,
 }) {
   const [dragActive, setDragActive] = useState(false);
 
