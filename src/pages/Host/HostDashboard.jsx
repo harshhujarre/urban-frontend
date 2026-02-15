@@ -3,7 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import propertyService from "../../api/propertyService";
 import PropertyCard from "../../components/Property/PropertyCard";
-import { Plus, Home } from "lucide-react";
+import { Plus, Home, Crown, AlertTriangle } from "lucide-react";
 
 export default function HostDashboard() {
   const { user } = useAuth();
@@ -11,6 +11,12 @@ export default function HostDashboard() {
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Account limits
+  const accountType = user?.accountType || "free";
+  const listingLimit = accountType === "premium" ? 20 : 2;
+  const listingsUsed = user?.propertiesListedThisMonth || 0;
+  const canAddMore = listingsUsed < listingLimit;
 
   useEffect(() => {
     loadProperties();
@@ -44,10 +50,31 @@ export default function HostDashboard() {
               <h1 className="text-3xl font-semibold text-gray-900">
                 Host Dashboard
               </h1>
+              {/* Account Type Badge */}
+              <div className="flex items-center gap-2 mt-2">
+                <span
+                  className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
+                    accountType === "premium"
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  {accountType === "premium" && <Crown className="w-3 h-3" />}
+                  {accountType === "premium" ? "Premium" : "Free"} Account
+                </span>
+                <span className="text-sm text-gray-500">
+                  {listingsUsed}/{listingLimit} listings this month
+                </span>
+              </div>
             </div>
             <button
               onClick={() => navigate("/host/dashboard/add-property")}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#FF5A5F] to-[#E0484D] text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium"
+              disabled={!canAddMore}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-all duration-200 font-medium ${
+                canAddMore
+                  ? "bg-gradient-to-r from-[#FF5A5F] to-[#E0484D] text-white hover:shadow-lg"
+                  : "bg-gray-200 text-gray-500 cursor-not-allowed"
+              }`}
             >
               <Plus className="w-5 h-5" />
               Add Property
@@ -55,6 +82,26 @@ export default function HostDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Listing Limit Warning */}
+      {!canAddMore && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-amber-800">
+                Monthly listing limit reached
+              </p>
+              <p className="text-sm text-amber-700 mt-1">
+                You've used all {listingLimit} listings for this month (
+                {accountType} account).
+                {accountType === "free" &&
+                  " Upgrade to Premium to list up to 20 properties per month."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -71,6 +118,7 @@ export default function HostDashboard() {
         ) : properties.length === 0 ? (
           <EmptyState
             onAddClick={() => navigate("/host/dashboard/add-property")}
+            canAddMore={canAddMore}
           />
         ) : (
           <>
@@ -97,7 +145,7 @@ export default function HostDashboard() {
 }
 
 // Empty State Component
-function EmptyState({ onAddClick }) {
+function EmptyState({ onAddClick, canAddMore }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-4">
       <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
@@ -112,7 +160,12 @@ function EmptyState({ onAddClick }) {
       </p>
       <button
         onClick={onAddClick}
-        className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#FF5A5F] to-[#E0484D] text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium text-lg"
+        disabled={!canAddMore}
+        className={`flex items-center gap-2 px-8 py-3 rounded-lg transition-all duration-200 font-medium text-lg ${
+          canAddMore
+            ? "bg-gradient-to-r from-[#FF5A5F] to-[#E0484D] text-white hover:shadow-lg"
+            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+        }`}
       >
         <Plus className="w-6 h-6" />
         Create Your First Listing

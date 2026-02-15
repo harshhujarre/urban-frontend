@@ -20,10 +20,14 @@ import {
   Dumbbell,
   ShieldCheck,
   X,
+  Phone,
+  Crown,
+  Lock,
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import propertyService from "../../api/propertyService";
+import { useAuth } from "../../context/AuthContext";
 
 // Fix for default marker icon in Leaflet
 import L from "leaflet";
@@ -53,11 +57,19 @@ const amenityIcons = {
 export default function PropertyDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
+
+  // Contact Owner state
+  const [ownerPhone, setOwnerPhone] = useState(null);
+  const [ownerName, setOwnerName] = useState(null);
+  const [contactLoading, setContactLoading] = useState(false);
+  const [contactError, setContactError] = useState(null);
+  const [contactRemaining, setContactRemaining] = useState(null);
 
   useEffect(() => {
     fetchProperty();
@@ -135,6 +147,38 @@ export default function PropertyDetailPage() {
   const getAmenityIcon = (amenity) => {
     const IconComponent = amenityIcons[amenity];
     return IconComponent ? <IconComponent size={24} /> : null;
+  };
+
+  const handleContactOwner = async () => {
+    if (!isAuthenticated) {
+      setContactError("Please log in to view owner contact details.");
+      return;
+    }
+
+    // Already revealed
+    if (ownerPhone) return;
+
+    try {
+      setContactLoading(true);
+      setContactError(null);
+      const data = await propertyService.getOwnerContact(id);
+      setOwnerPhone(data.data.ownerPhone);
+      setOwnerName(data.data.ownerName);
+      setContactRemaining(data.remaining);
+    } catch (err) {
+      const msg = err.message || "Failed to get contact details";
+      if (msg.includes("limit")) {
+        setContactError(
+          `Monthly limit reached (${user?.accountType === "premium" ? "10" : "1"} for ${user?.accountType || "free"} accounts). Upgrade to Premium for more!`,
+        );
+      } else if (msg.includes("authorized") || msg.includes("Not authorized")) {
+        setContactError("Please log in to view owner contact details.");
+      } else {
+        setContactError(msg);
+      }
+    } finally {
+      setContactLoading(false);
+    }
   };
 
   if (loading) {
@@ -566,12 +610,76 @@ export default function PropertyDetailPage() {
                 </div>
 
                 {/* Contact Owner Button */}
-                <button className="w-full py-4 bg-gradient-to-r from-[#FF5A5F] to-[#E0484D] text-white text-lg font-semibold rounded-lg hover:shadow-lg transition-all mb-4">
-                  Contact Owner
-                </button>
+                {ownerPhone ? (
+                  // Phone number revealed
+                  <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4 mb-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                        <Phone className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Owner Contact</p>
+                        <p className="font-semibold text-gray-900">
+                          {ownerName}
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href={`tel:${ownerPhone}`}
+                      className="w-full flex items-center justify-center gap-2 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition"
+                    >
+                      <Phone className="w-5 h-5" />
+                      {ownerPhone}
+                    </a>
+                    {contactRemaining !== null && (
+                      <p className="text-xs text-gray-500 mt-2 text-center">
+                        {contactRemaining} contact view
+                        {contactRemaining !== 1 ? "s" : ""} remaining this month
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  // Contact Owner button
+                  <>
+                    <button
+                      onClick={handleContactOwner}
+                      disabled={contactLoading}
+                      className="w-full py-4 bg-gradient-to-r from-[#FF5A5F] to-[#E0484D] text-white text-lg font-semibold rounded-lg hover:shadow-lg transition-all mb-2 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {contactLoading ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Loading...
+                        </>
+                      ) : (
+                        <>
+                          <Phone className="w-5 h-5" />
+                          Contact Owner
+                        </>
+                      )}
+                    </button>
+
+                    {/* Error / Limit Reached Message */}
+                    {contactError && (
+                      <div className="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200">
+                        <div className="flex items-start gap-2">
+                          {contactError.includes("limit") ||
+                          contactError.includes("Upgrade") ? (
+                            <Crown className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                          ) : (
+                            <Lock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                          )}
+                          <p className="text-sm text-amber-800">
+                            {contactError}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
 
                 <p className="text-center text-sm text-gray-500 mb-6">
-                  You won't be charged 
+                  You won't be charged
                 </p>
 
                 {/* Property Quick Stats */}
@@ -594,7 +702,7 @@ export default function PropertyDetailPage() {
               {/* Report Listing */}
               <div className="mt-6 text-center">
                 <button className="text-gray-600 hover:text-gray-900 underline text-sm">
-                  Report this 
+                  Report this
                 </button>
               </div>
             </div>

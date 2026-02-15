@@ -85,6 +85,13 @@ export const propertyService = {
   async deleteImage(publicId) {
     return await apiClient.post("/upload/image", { publicId });
   },
+
+  /**
+   * Get owner contact details (checks account limits)
+   */
+  async getOwnerContact(propertyId) {
+    return await apiClient.get(`/properties/${propertyId}/contact`);
+  },
 };
 
 export default propertyService;

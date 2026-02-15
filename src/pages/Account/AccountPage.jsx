@@ -3,7 +3,16 @@ import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import authService from "../../api/authService";
 import ProfileImageUpload from "../../components/Account/ProfileImageUpload";
-import { Save, Mail, Phone, User as UserIcon, Shield } from "lucide-react";
+import {
+  Save,
+  Mail,
+  Phone,
+  User as UserIcon,
+  Shield,
+  Crown,
+  Eye,
+  Home,
+} from "lucide-react";
 
 export default function AccountPage() {
   const { user, isAuthenticated, updateUser } = useAuth();
@@ -119,6 +128,64 @@ export default function AccountPage() {
                   <span className="text-sm font-medium text-gray-700 capitalize">
                     {user.role}
                   </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Account Type & Usage Section */}
+            <div className="px-6 py-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Account Plan
+              </h3>
+              <div className="flex items-center gap-3 mb-4">
+                <span
+                  className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold ${
+                    (user.accountType || "free") === "premium"
+                      ? "bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200"
+                      : "bg-gray-100 text-gray-700 border border-gray-200"
+                  }`}
+                >
+                  {(user.accountType || "free") === "premium" && (
+                    <Crown className="w-4 h-4" />
+                  )}
+                  {(user.accountType || "free") === "premium"
+                    ? "Premium"
+                    : "Free"}{" "}
+                  Plan
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Eye className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Contact Views</p>
+                    <p className="font-semibold text-gray-900">
+                      {user.contactViewsUsed || 0} /{" "}
+                      {(user.accountType || "free") === "premium" ? 10 : 1}
+                      <span className="text-xs text-gray-500 font-normal">
+                        {" "}
+                        this month
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center">
+                    <Home className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Listings</p>
+                    <p className="font-semibold text-gray-900">
+                      {user.propertiesListedThisMonth || 0} /{" "}
+                      {(user.accountType || "free") === "premium" ? 20 : 2}
+                      <span className="text-xs text-gray-500 font-normal">
+                        {" "}
+                        this month
+                      </span>
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
