@@ -92,6 +92,20 @@ export const propertyService = {
   async getOwnerContact(propertyId) {
     return await apiClient.get(`/properties/${propertyId}/contact`);
   },
+
+  /**
+   * Update a property
+   */
+  async updateProperty(id, propertyData) {
+    return await apiClient.put(`/properties/${id}`, propertyData);
+  },
+
+  /**
+   * Get property analytics/stats (owner only)
+   */
+  async getPropertyStats(id) {
+    return await apiClient.get(`/properties/${id}/stats`);
+  },
 };
 
 export default propertyService;

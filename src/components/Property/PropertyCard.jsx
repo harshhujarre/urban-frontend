@@ -7,10 +7,13 @@ import {
   Edit2,
   Trash2,
   MoreVertical,
+  Eye,
+  Heart,
+  MessageSquare,
 } from "lucide-react";
 import propertyService from "../../api/propertyService";
 
-export default function PropertyCard({ property, onUpdate, onDelete }) {
+export default function PropertyCard({ property, onUpdate, onDelete, onEdit }) {
   const [showMenu, setShowMenu] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -54,6 +57,35 @@ export default function PropertyCard({ property, onUpdate, onDelete }) {
           </div>
         )}
 
+        {/* Mini Stats Overlay */}
+        <div className="absolute bottom-2 left-2 flex gap-1.5">
+          <span className="flex items-center gap-1 px-2 py-1 bg-black/60 backdrop-blur-sm text-white rounded-md text-xs">
+            <Eye className="w-3 h-3" />
+            {property.views || 0}
+          </span>
+          <span className="flex items-center gap-1 px-2 py-1 bg-black/60 backdrop-blur-sm text-white rounded-md text-xs">
+            <Heart className="w-3 h-3" />
+            {property.likes || 0}
+          </span>
+          <span className="flex items-center gap-1 px-2 py-1 bg-black/60 backdrop-blur-sm text-white rounded-md text-xs">
+            <MessageSquare className="w-3 h-3" />
+            {property.contactRequests || 0}
+          </span>
+        </div>
+
+        {/* Availability Badge */}
+        <div className="absolute top-3 left-3">
+          <span
+            className={`px-2 py-1 rounded-md text-xs font-medium ${
+              property.isAvailable !== false
+                ? "bg-green-500/90 text-white"
+                : "bg-red-500/90 text-white"
+            }`}
+          >
+            {property.isAvailable !== false ? "Active" : "Inactive"}
+          </span>
+        </div>
+
         {/* Menu Button */}
         <div className="absolute top-3 right-3">
           <button
@@ -69,8 +101,7 @@ export default function PropertyCard({ property, onUpdate, onDelete }) {
               <button
                 onClick={() => {
                   setShowMenu(false);
-                  // TODO: Implement edit
-                  alert("Edit functionality coming soon!");
+                  onEdit && onEdit(property);
                 }}
                 className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition text-left"
               >

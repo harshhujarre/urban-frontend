@@ -7,6 +7,7 @@ import HostDashboard from "./pages/Host/HostDashboard";
 import AddPropertyPage from "./pages/Host/AddPropertyPage";
 import PropertyDetailPage from "./pages/Properties/PropertyDetailPage";
 import AccountPage from "./pages/Account/AccountPage";
+import PricingPage from "./pages/Pricing/PricingPage";
 import ProtectedRoute from "./components/Auth/ProtectedRoute";
 import BottomNav from "./components/Navigation/BottomNav";
 
@@ -50,6 +51,16 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <AccountPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Pricing / Upgrade Page - Protected */}
+              <Route
+                path="/pricing"
+                element={
+                  <ProtectedRoute>
+                    <PricingPage />
                   </ProtectedRoute>
                 }
               />

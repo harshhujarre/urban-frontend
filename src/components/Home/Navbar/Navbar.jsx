@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Menu } from "lucide-react";
+import { Menu, Crown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import AuthModal from "../../Auth/AuthModal";
@@ -101,6 +101,25 @@ export default function Navbar() {
                 : "Become a Host"}
             </button>
 
+            {/* Upgrade / Premium Badge */}
+            {isAuthenticated &&
+              ((user?.accountType || "free") === "free" ? (
+                <button
+                  onClick={() => {
+                    navigate("/pricing");
+                  }}
+                  className="hidden md:flex items-center gap-1.5 font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 px-3 py-2 rounded-full transition border border-amber-200"
+                >
+                  <Crown size={14} />
+                  Upgrade
+                </button>
+              ) : (
+                <span className="hidden md:flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
+                  <Crown size={12} />
+                  Premium
+                </span>
+              ))}
+
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setIsOpen(!isOpen)}
@@ -154,6 +173,20 @@ export default function Navbar() {
                         >
                           Account Settings
                         </button>
+
+                        {/* Upgrade to Premium - only for free users */}
+                        {(user?.accountType || "free") === "free" && (
+                          <button
+                            onClick={() => {
+                              navigate("/pricing");
+                              setIsOpen(false);
+                            }}
+                            className="text-left px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-amber-50 text-sm transition flex items-center gap-2 text-amber-700 font-medium"
+                          >
+                            <Crown size={14} />
+                            Upgrade to Premium
+                          </button>
+                        )}
                         <button className="text-left px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gray-50 text-sm transition">
                           Help Center
                         </button>
