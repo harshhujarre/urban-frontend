@@ -106,6 +106,20 @@ export const propertyService = {
   async getPropertyStats(id) {
     return await apiClient.get(`/properties/${id}/stats`);
   },
+
+  /**
+   * Toggle like on a property (like/unlike)
+   */
+  async toggleLike(propertyId) {
+    return await apiClient.post(`/properties/${propertyId}/like`);
+  },
+
+  /**
+   * Get like status for current user on a property
+   */
+  async getLikeStatus(propertyId) {
+    return await apiClient.get(`/properties/${propertyId}/like-status`);
+  },
 };
 
 export default propertyService;

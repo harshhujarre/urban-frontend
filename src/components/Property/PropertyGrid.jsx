@@ -1,16 +1,11 @@
-import { MapPin, Bed, Bath, Users } from "lucide-react";
+import { useState, useCallback } from "react";
+import { MapPin, Bed, Bath, Users, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import propertyService from "../../api/propertyService";
 
 export default function PropertyGrid({ properties, loading }) {
   const navigate = useNavigate();
-
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
 
   if (loading) {
     return (
@@ -45,6 +40,20 @@ export default function PropertyGrid({ properties, loading }) {
 }
 
 function PropertyGridCard({ property, onClick }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Initialise liked state from likedBy if user is logged in
+  const isLikedInitially = user
+    ? (property.likedBy || []).some(
+        (id) => id === user._id || id?.toString?.() === user._id,
+      )
+    : false;
+
+  const [liked, setLiked] = useState(isLikedInitially);
+  const [likesCount, setLikesCount] = useState(property.likes || 0);
+  const [likeLoading, setLikeLoading] = useState(false);
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
@@ -52,6 +61,43 @@ function PropertyGridCard({ property, onClick }) {
       maximumFractionDigits: 0,
     }).format(price);
   };
+
+  const handleLike = useCallback(
+    async (e) => {
+      e.stopPropagation(); // Don't navigate to property detail
+
+      if (!user) {
+        navigate("/login");
+        return;
+      }
+
+      if (likeLoading) return;
+
+      // Optimistic update
+      const newLiked = !liked;
+      const newCount = newLiked ? likesCount + 1 : Math.max(0, likesCount - 1);
+      setLiked(newLiked);
+      setLikesCount(newCount);
+      setLikeLoading(true);
+
+      try {
+        const response = await propertyService.toggleLike(property._id);
+        // apiClient returns data directly (no extra .data wrapper)
+        if (response && typeof response.liked !== "undefined") {
+          setLiked(response.liked);
+          setLikesCount(response.likesCount ?? newCount);
+        }
+      } catch (error) {
+        // Revert on failure
+        setLiked(liked);
+        setLikesCount(likesCount);
+        console.error("Failed to toggle like:", error);
+      } finally {
+        setLikeLoading(false);
+      }
+    },
+    [user, liked, likesCount, likeLoading, property._id, navigate],
+  );
 
   return (
     <div className="group cursor-pointer" onClick={onClick}>
@@ -69,27 +115,28 @@ function PropertyGridCard({ property, onClick }) {
           </div>
         )}
 
-        {/* Favorite Button (placeholder for future) */}
+        {/* Like Button */}
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            // TODO: Implement favorite functionality
-          }}
-          className="absolute top-3 right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white hover:scale-110 transition"
+          onClick={handleLike}
+          disabled={likeLoading}
+          title={user ? (liked ? "Unlike" : "Like") : "Login to like"}
+          className={`absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full backdrop-blur-sm transition-all duration-200 shadow-md
+            ${
+              liked
+                ? "bg-white text-red-500 hover:bg-red-50"
+                : "bg-white/80 text-gray-600 hover:bg-white hover:text-red-400"
+            }
+            ${likeLoading ? "opacity-70 cursor-wait" : "hover:scale-110"}
+          `}
         >
-          <svg
-            className="w-5 h-5 text-gray-700"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-            />
-          </svg>
+          <Heart
+            className={`w-4 h-4 transition-all duration-200 ${liked ? "fill-red-500 stroke-red-500" : "fill-none"}`}
+          />
+          {likesCount > 0 && (
+            <span className="text-xs font-semibold leading-none">
+              {likesCount}
+            </span>
+          )}
         </button>
       </div>
 
