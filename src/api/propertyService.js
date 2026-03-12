@@ -15,6 +15,13 @@ export const propertyService = {
   },
 
   /**
+   * Get distinct cities that have listings
+   */
+  async getCities() {
+    return await apiClient.get("/properties/cities");
+  },
+
+  /**
    * Get single property by ID
    */
   async getProperty(id) {

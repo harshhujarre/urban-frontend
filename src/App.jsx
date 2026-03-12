@@ -1,4 +1,5 @@
 import { AuthProvider } from "./context/AuthContext";
+import { SearchProvider } from "./context/SearchContext";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import Navbar from "./components/Home/Navbar/Navbar";
@@ -15,7 +16,8 @@ const App = () => {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <AuthProvider>
-        <Router>
+        <SearchProvider>
+          <Router>
           <div className="pb-16 md:pb-0">
             <Navbar />
             <Routes>
@@ -69,7 +71,8 @@ const App = () => {
             {/* Mobile Bottom Navigation */}
             <BottomNav />
           </div>
-        </Router>
+          </Router>
+        </SearchProvider>
       </AuthProvider>
     </GoogleOAuthProvider>
   );

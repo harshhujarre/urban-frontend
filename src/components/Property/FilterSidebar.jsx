@@ -13,44 +13,56 @@ const AMENITIES = [
   "Balcony",
 ];
 
-export default function FilterSidebar({ filters, onFilterChange, onClear }) {
+export default function FilterSidebar({ filters, onFilterChange, onClear, onKeywordChange }) {
+  const [keywordInput, setKeywordInput] = useState(filters.q || "");
+
   const handlePriceChange = (field, value) => {
-    onFilterChange({
-      ...filters,
-      [field]: value,
-    });
+    onFilterChange({ ...filters, [field]: value });
   };
 
   const toggleAmenity = (amenity) => {
     const newAmenities = filters.amenities.includes(amenity)
       ? filters.amenities.filter((a) => a !== amenity)
       : [...filters.amenities, amenity];
-
-    onFilterChange({
-      ...filters,
-      amenities: newAmenities,
-    });
+    onFilterChange({ ...filters, amenities: newAmenities });
   };
 
   const handleBedroomsChange = (value) => {
-    onFilterChange({
-      ...filters,
-      bedrooms: value,
-    });
+    onFilterChange({ ...filters, bedrooms: value });
+  };
+
+  const handleKeywordChange = (e) => {
+    const val = e.target.value;
+    setKeywordInput(val);
+    // Debounced update passed from parent (useSearch hook)
+    if (onKeywordChange) onKeywordChange(val);
   };
 
   return (
     <div className="space-y-8">
+      {/* Keyword Search */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Keyword Search</h3>
+        <div className="relative">
+          <input
+            type="text"
+            value={keywordInput}
+            onChange={handleKeywordChange}
+            placeholder="e.g. spacious, sea view, balcony..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FF5A5F] focus:border-transparent"
+          />
+          <p className="text-xs text-gray-400 mt-1">Searches property titles &amp; descriptions</p>
+        </div>
+      </div>
+
+      <div className="h-px bg-gray-200" />
+
       {/* Price Range */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Price Range
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Price Range</h3>
         <div className="space-y-3">
           <div>
-            <label className="block text-sm text-gray-700 mb-1">
-              Minimum Price (₹)
-            </label>
+            <label className="block text-sm text-gray-700 mb-1">Minimum Price (₹)</label>
             <input
               type="number"
               value={filters.minPrice}
@@ -62,9 +74,7 @@ export default function FilterSidebar({ filters, onFilterChange, onClear }) {
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-700 mb-1">
-              Maximum Price (₹)
-            </label>
+            <label className="block text-sm text-gray-700 mb-1">Maximum Price (₹)</label>
             <input
               type="number"
               value={filters.maxPrice}
@@ -77,7 +87,7 @@ export default function FilterSidebar({ filters, onFilterChange, onClear }) {
           </div>
         </div>
 
-        {/* Price Range Buttons */}
+        {/* Quick Price Buttons */}
         <div className="mt-3 grid grid-cols-2 gap-2">
           {[
             { label: "Under ₹2K", min: "", max: "2000" },
@@ -88,8 +98,7 @@ export default function FilterSidebar({ filters, onFilterChange, onClear }) {
             <button
               key={range.label}
               onClick={() => {
-                handlePriceChange("minPrice", range.min);
-                handlePriceChange("maxPrice", range.max);
+                onFilterChange({ ...filters, minPrice: range.min, maxPrice: range.max });
               }}
               className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:border-[#FF5A5F] hover:bg-red-50 transition"
             >
@@ -108,7 +117,6 @@ export default function FilterSidebar({ filters, onFilterChange, onClear }) {
           {["Any", "1", "2", "3+"].map((option) => {
             const value = option === "Any" ? "" : option.replace("+", "");
             const isActive = filters.bedrooms === value;
-
             return (
               <button
                 key={option}
@@ -134,12 +142,8 @@ export default function FilterSidebar({ filters, onFilterChange, onClear }) {
         <div className="space-y-2">
           {AMENITIES.map((amenity) => {
             const isSelected = filters.amenities.includes(amenity);
-
             return (
-              <label
-                key={amenity}
-                className="flex items-center gap-3 cursor-pointer group"
-              >
+              <label key={amenity} className="flex items-center gap-3 cursor-pointer group">
                 <div
                   className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-all ${
                     isSelected
@@ -148,18 +152,8 @@ export default function FilterSidebar({ filters, onFilterChange, onClear }) {
                   }`}
                 >
                   {isSelected && (
-                    <svg
-                      className="w-3 h-3 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={3}
-                        d="M5 13l4 4L19 7"
-                      />
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                     </svg>
                   )}
                 </div>
@@ -169,9 +163,7 @@ export default function FilterSidebar({ filters, onFilterChange, onClear }) {
                   onChange={() => toggleAmenity(amenity)}
                   className="sr-only"
                 />
-                <span className="text-gray-700 group-hover:text-gray-900">
-                  {amenity}
-                </span>
+                <span className="text-gray-700 group-hover:text-gray-900">{amenity}</span>
               </label>
             );
           })}
@@ -182,7 +174,10 @@ export default function FilterSidebar({ filters, onFilterChange, onClear }) {
 
       {/* Clear Button */}
       <button
-        onClick={onClear}
+        onClick={() => {
+          setKeywordInput("");
+          onClear();
+        }}
         className="w-full px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium text-gray-700"
       >
         Clear all filters
