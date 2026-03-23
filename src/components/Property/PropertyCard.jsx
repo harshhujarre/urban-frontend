@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   MapPin,
   Bed,
@@ -16,6 +16,19 @@ import propertyService from "../../api/propertyService";
 export default function PropertyCard({ property, onUpdate, onDelete, onEdit }) {
   const [showMenu, setShowMenu] = useState(false);
   const [loading, setLoading] = useState(false);
+  const menuRef = useRef(null);
+
+  // Fix #5: Close dropdown when clicking outside
+  useEffect(() => {
+    if (!showMenu) return;
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showMenu]);
 
   const handleDelete = async () => {
     if (!window.confirm("Are you sure you want to delete this property?")) {
@@ -87,7 +100,7 @@ export default function PropertyCard({ property, onUpdate, onDelete, onEdit }) {
         </div>
 
         {/* Menu Button */}
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 right-3" ref={menuRef}>
           <button
             onClick={() => setShowMenu(!showMenu)}
             className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition"
@@ -131,8 +144,9 @@ export default function PropertyCard({ property, onUpdate, onDelete, onEdit }) {
         {/* Location */}
         <div className="flex items-center gap-1 text-gray-600 mb-2">
           <MapPin className="w-4 h-4" />
+          {/* Fix #1: backend has location.city only, no state field */}
           <span className="text-sm font-medium">
-            {property.location.city}, {property.location.state || "India"}
+            {property.location?.city || "Unknown location"}
           </span>
         </div>
 
@@ -142,28 +156,33 @@ export default function PropertyCard({ property, onUpdate, onDelete, onEdit }) {
         </h3>
 
         {/* Details */}
+        {/* Fix #1: bedrooms/bathrooms may not exist in backend model — show gracefully */}
         <div className="flex items-center gap-4 text-gray-600 mb-3">
-          <div className="flex items-center gap-1">
-            <Bed className="w-4 h-4" />
-            <span className="text-sm">{property.bedrooms}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Bath className="w-4 h-4" />
-            <span className="text-sm">{property.bathrooms}</span>
-          </div>
+          {property.bedrooms != null && (
+            <div className="flex items-center gap-1">
+              <Bed className="w-4 h-4" />
+              <span className="text-sm">{property.bedrooms}</span>
+            </div>
+          )}
+          {property.bathrooms != null && (
+            <div className="flex items-center gap-1">
+              <Bath className="w-4 h-4" />
+              <span className="text-sm">{property.bathrooms}</span>
+            </div>
+          )}
           <div className="flex items-center gap-1">
             <Users className="w-4 h-4" />
             <span className="text-sm">{property.maxGuests} guests</span>
           </div>
         </div>
 
-        {/* Price */}
+        {/* Price — Fix #2: use rentAmount, label as /month unless per_person */}
         <div className="flex items-baseline gap-1">
           <span className="text-xl font-semibold text-gray-900">
-            {formatPrice(property.rentAmount || property.pricePerNight || 0)}
+            {formatPrice(property.rentAmount || 0)}
           </span>
           <span className="text-sm text-gray-600">
-            {property.rentType === "per_person" ? "/ person" : "/ night"}
+            {property.rentType === "per_person" ? "/ person" : "/ month"}
           </span>
         </div>
 

@@ -12,7 +12,7 @@ export default function HomePage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [showFilters, setShowFilters] = useState(true);
+  const [showFilters, setShowFilters] = useState(() => window.innerWidth >= 1024);
 
   // Reload whenever any URL filter or page changes
   useEffect(() => {

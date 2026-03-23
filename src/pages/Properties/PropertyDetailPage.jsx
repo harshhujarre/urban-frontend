@@ -28,6 +28,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import propertyService from "../../api/propertyService";
 import { useAuth } from "../../context/AuthContext";
+import ReviewSection from "../../components/Property/ReviewSection";
 
 // Fix for default marker icon in Leaflet
 import L from "leaflet";
@@ -580,6 +581,9 @@ export default function PropertyDetailPage() {
                 </div>
               </div>
             )}
+
+            {/* Reviews Section */}
+            <ReviewSection propertyId={id} />
           </div>
 
           {/* Right Column - Sticky Pricing Card */}
