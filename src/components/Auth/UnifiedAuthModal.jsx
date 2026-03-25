@@ -6,24 +6,18 @@ import "./UnifiedAuthModal.css";
 
 const UnifiedAuthModal = ({ onSuccess }) => {
   // ==================== STATE MANAGEMENT ====================
-  const [stage, setStage] = useState("initial"); // initial | otp | phone-for-google | profile
-  const [authMethod, setAuthMethod] = useState(null); // phone | google
-
+  const [stage, setStage] = useState("initial"); // initial | phone-verify | otp
   const [formData, setFormData] = useState({
     phoneNumber: "",
     otp: "",
-    name: "",
-    city: "",
   });
 
-  const [googleData, setGoogleData] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
-  const [isNewUser, setIsNewUser] = useState(false);
 
   const otpInputRef = useRef(null);
-  const { sendOtp, verifyOtp, googleLogin, completeSignup } = useAuth();
+  const { sendOtp, linkPhone, googleLogin } = useAuth();
 
   // ==================== EFFECTS ====================
 
@@ -44,13 +38,6 @@ const UnifiedAuthModal = ({ onSuccess }) => {
     }
   }, [resendTimer]);
 
-  // Prefill name from Google data when entering profile stage
-  useEffect(() => {
-    if (stage === "profile" && googleData?.name && !formData.name) {
-      setFormData((prev) => ({ ...prev, name: googleData.name }));
-    }
-  }, [stage, googleData, formData.name]);
-
   // ==================== VALIDATION ====================
 
   const validatePhone = (phone) => {
@@ -69,16 +56,6 @@ const UnifiedAuthModal = ({ onSuccess }) => {
     }
     if (!/^\d{4}$/.test(otp)) {
       return "OTP must contain only digits";
-    }
-    return null;
-  };
-
-  const validateProfile = (name, city) => {
-    if (!name || name.trim().length < 2) {
-      return "Please enter your name (at least 2 characters)";
-    }
-    if (!city || city.trim().length < 2) {
-      return "Please enter your city";
     }
     return null;
   };
@@ -105,7 +82,36 @@ const UnifiedAuthModal = ({ onSuccess }) => {
     setResendTimer(60);
   };
 
-  // ==================== PHONE AUTH FLOW ====================
+  // ==================== GOOGLE AUTH FLOW ====================
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await googleLogin(credentialResponse.credential);
+
+      if (result.isNewUser) {
+        // New user — offer optional phone verification
+        setStage("phone-verify");
+      } else {
+        // Existing user — logged in, close modal
+        onSuccess();
+      }
+    } catch (error) {
+      setError(
+        error.response?.data?.message || error.message || "Google login failed",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError("Google login failed. Please try again.");
+  };
+
+  // ==================== PHONE VERIFY FLOW (after Google signup) ====================
 
   const handleSendOtp = async () => {
     setError("");
@@ -118,9 +124,7 @@ const UnifiedAuthModal = ({ onSuccess }) => {
 
     setLoading(true);
     try {
-      const result = await sendOtp(formData.phoneNumber);
-      setIsNewUser(result.isNewUser);
-      setAuthMethod("phone");
+      await sendOtp(formData.phoneNumber);
       setStage("otp");
       startResendTimer();
     } catch (error) {
@@ -143,15 +147,9 @@ const UnifiedAuthModal = ({ onSuccess }) => {
 
     setLoading(true);
     try {
-      const result = await verifyOtp(formData.phoneNumber, formData.otp);
-
-      if (result.needsSignup) {
-        // New user - go to profile completion
-        setStage("profile");
-      } else {
-        // Existing user - logged in successfully
-        onSuccess();
-      }
+      await linkPhone(formData.phoneNumber, formData.otp);
+      // Phone linked successfully — close modal
+      onSuccess();
     } catch (error) {
       setError(error.response?.data?.message || error.message || "Invalid OTP");
     } finally {
@@ -179,103 +177,9 @@ const UnifiedAuthModal = ({ onSuccess }) => {
     }
   };
 
-  // ==================== GOOGLE AUTH FLOW ====================
-
-  const handleGoogleSuccess = async (credentialResponse) => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const result = await googleLogin(credentialResponse.credential);
-
-      if (result.needsPhoneVerification) {
-        // Store Google data and require phone verification
-        setGoogleData(result.googleData);
-        setAuthMethod("google");
-        setStage("phone-for-google");
-      } else {
-        // Existing user with phone - logged in successfully
-        onSuccess();
-      }
-    } catch (error) {
-      setError(
-        error.response?.data?.message || error.message || "Google login failed",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleError = () => {
-    setError("Google login failed. Please try again.");
-  };
-
-  const handleSendOtpForGoogle = async () => {
-    setError("");
-
-    const validationError = validatePhone(formData.phoneNumber);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await sendOtp(formData.phoneNumber);
-      setStage("otp");
-      startResendTimer();
-    } catch (error) {
-      setError(
-        error.response?.data?.message || error.message || "Failed to send OTP",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ==================== COMPLETE SIGNUP ====================
-
-  const handleCompleteSignup = async () => {
-    setError("");
-
-    const validationError = validateProfile(formData.name, formData.city);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const signupData = {
-        phone: formData.phoneNumber,
-        name: formData.name.trim(),
-        city: formData.city.trim(),
-        ...(googleData && {
-          googleId: googleData.googleId,
-          email: googleData.email,
-          profilePhoto: googleData.profilePhoto,
-        }),
-      };
-
-      await completeSignup(signupData);
-      onSuccess();
-    } catch (error) {
-      setError(
-        error.response?.data?.message || error.message || "Signup failed",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ==================== RESET ====================
-
-  const handleBackToInitial = () => {
-    setStage("initial");
-    setFormData({ phoneNumber: "", otp: "", name: "", city: "" });
-    setGoogleData(null);
-    setError("");
-    setResendTimer(0);
+  const handleSkip = () => {
+    // User chose to skip phone verification — they're already logged in
+    onSuccess();
   };
 
   // ==================== RENDER STAGES ====================
@@ -283,11 +187,33 @@ const UnifiedAuthModal = ({ onSuccess }) => {
   const renderInitialStage = () => (
     <div className="auth-stage">
       <h2 className="auth-title">Welcome to UrbanStay</h2>
+      <p className="auth-info">
+        Sign in with your Google account to continue. Quick, easy, and secure.
+      </p>
 
-      <div className="form-group">
-        <label className="form-label">Country/Region</label>
-        <div className="country-display">India (+91)</div>
+      <div className="google-login-wrapper">
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+          text="continue_with"
+          width="100%"
+        />
       </div>
+
+      {loading && (
+        <p className="auth-info" style={{ textAlign: "center" }}>
+          Signing you in...
+        </p>
+      )}
+    </div>
+  );
+
+  const renderPhoneVerifyStage = () => (
+    <div className="auth-stage">
+      <h2 className="auth-title">Verify Your Phone Number</h2>
+      <p className="auth-info">
+        Add your phone number for a better experience. You'll need it to contact owners, get directions, and list properties.
+      </p>
 
       <div className="form-group">
         <label className="form-label">Phone number</label>
@@ -301,6 +227,7 @@ const UnifiedAuthModal = ({ onSuccess }) => {
             value={formData.phoneNumber}
             onChange={handlePhoneChange}
             maxLength="10"
+            autoFocus
           />
         </div>
       </div>
@@ -315,21 +242,16 @@ const UnifiedAuthModal = ({ onSuccess }) => {
         onClick={handleSendOtp}
         disabled={loading || formData.phoneNumber.length !== 10}
       >
-        {loading ? "Sending..." : "Continue"}
+        {loading ? "Sending..." : "Verify Now"}
       </button>
 
-      <div className="divider">
-        <span>or</span>
-      </div>
-
-      <div className="google-login-wrapper">
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={handleGoogleError}
-          text="continue_with"
-          width="100%"
-        />
-      </div>
+      <button
+        className="btn btn-link btn-block"
+        onClick={handleSkip}
+        style={{ marginTop: "4px" }}
+      >
+        Skip for now →
+      </button>
     </div>
   );
 
@@ -337,7 +259,14 @@ const UnifiedAuthModal = ({ onSuccess }) => {
     <div className="auth-stage">
       <div className="otp-header">
         <p className="otp-sent-to">OTP sent to +91 {formData.phoneNumber}</p>
-        <button className="btn-link" onClick={handleBackToInitial}>
+        <button
+          className="btn-link"
+          onClick={() => {
+            setStage("phone-verify");
+            setFormData({ ...formData, otp: "" });
+            setError("");
+          }}
+        >
           Change
         </button>
       </div>
@@ -371,96 +300,13 @@ const UnifiedAuthModal = ({ onSuccess }) => {
       >
         {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend OTP"}
       </button>
-    </div>
-  );
-
-  const renderPhoneForGoogleStage = () => (
-    <div className="auth-stage">
-      <h3 className="auth-title">Complete your profile</h3>
-      <p className="auth-subtitle">We need to verify your phone number</p>
-
-      {googleData && (
-        <div className="google-user-info">
-          <img
-            src={googleData.profilePhoto}
-            alt={googleData.name}
-            className="google-avatar"
-          />
-          <div>
-            <p className="google-name">{googleData.name}</p>
-            <p className="google-email">{googleData.email}</p>
-          </div>
-        </div>
-      )}
-
-      <div className="form-group">
-        <label className="form-label">Phone number</label>
-        <div className="phone-input-wrapper">
-          <span className="phone-prefix">+91</span>
-          <input
-            type="tel"
-            inputMode="numeric"
-            className="form-input phone-input"
-            placeholder="Enter 10-digit number"
-            value={formData.phoneNumber}
-            onChange={handlePhoneChange}
-            maxLength="10"
-          />
-        </div>
-      </div>
 
       <button
-        className="btn btn-primary btn-block"
-        onClick={handleSendOtpForGoogle}
-        disabled={loading || formData.phoneNumber.length !== 10}
+        className="btn btn-link btn-block"
+        onClick={handleSkip}
+        style={{ marginTop: "0" }}
       >
-        {loading ? "Sending..." : "Send OTP"}
-      </button>
-    </div>
-  );
-
-  const renderProfileStage = () => (
-    <div className="auth-stage">
-      <h3 className="auth-title">Complete your profile</h3>
-
-      {googleData && (
-        <div className="google-user-info">
-          <img
-            src={googleData.profilePhoto}
-            alt={googleData.name}
-            className="google-avatar"
-          />
-        </div>
-      )}
-
-      <div className="form-group">
-        <label className="form-label">Full Name</label>
-        <input
-          type="text"
-          className="form-input"
-          placeholder="Enter your name"
-          value={formData.name || googleData?.name || ""}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-        />
-      </div>
-
-      <div className="form-group">
-        <label className="form-label">City</label>
-        <input
-          type="text"
-          className="form-input"
-          placeholder="Enter your city"
-          value={formData.city}
-          onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-        />
-      </div>
-
-      <button
-        className="btn btn-primary btn-block"
-        onClick={handleCompleteSignup}
-        disabled={loading || !formData.name.trim() || !formData.city.trim()}
-      >
-        {loading ? "Creating account..." : "Complete Signup"}
+        Skip for now →
       </button>
     </div>
   );
@@ -478,9 +324,8 @@ const UnifiedAuthModal = ({ onSuccess }) => {
 
       {/* Stage Rendering */}
       {stage === "initial" && renderInitialStage()}
+      {stage === "phone-verify" && renderPhoneVerifyStage()}
       {stage === "otp" && renderOtpStage()}
-      {stage === "phone-for-google" && renderPhoneForGoogleStage()}
-      {stage === "profile" && renderProfileStage()}
     </div>
   );
 };

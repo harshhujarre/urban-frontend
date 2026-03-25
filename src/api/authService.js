@@ -71,6 +71,13 @@ export const authService = {
     // signupData: { phone, name, city, googleId?, email?, profilePhoto?, role? }
     return await apiClient.post("/auth/complete-signup", signupData);
   },
+
+  // ==================== LINK PHONE ====================
+
+  // Link and verify phone number for logged-in user
+  async linkPhone(phoneNumber, otp) {
+    return await apiClient.post("/auth/link-phone", { phoneNumber, otp });
+  },
 };
 
 export default authService;

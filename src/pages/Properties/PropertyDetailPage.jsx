@@ -29,6 +29,8 @@ import "leaflet/dist/leaflet.css";
 import propertyService from "../../api/propertyService";
 import { useAuth } from "../../context/AuthContext";
 import ReviewSection from "../../components/Property/ReviewSection";
+import PhoneVerifyModal from "../../components/Auth/PhoneVerifyModal";
+import AuthModal from "../../components/Auth/AuthModal";
 
 // Fix for default marker icon in Leaflet
 import L from "leaflet";
@@ -58,12 +60,15 @@ const amenityIcons = {
 export default function PropertyDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isPhoneVerified } = useAuth();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
+  const [showPhoneVerify, setShowPhoneVerify] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null); // 'contact' or 'directions'
 
   // Contact Owner state
   const [ownerPhone, setOwnerPhone] = useState(null);
@@ -115,6 +120,19 @@ export default function PropertyDetailPage() {
   };
 
   const getDirections = () => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+    if (!isPhoneVerified) {
+      setPendingAction("directions");
+      setShowPhoneVerify(true);
+      return;
+    }
+    openDirections();
+  };
+
+  const openDirections = () => {
     if (property?.coordinates?.latitude && property?.coordinates?.longitude) {
       const lat = property.coordinates.latitude;
       const lng = property.coordinates.longitude;
@@ -152,10 +170,20 @@ export default function PropertyDetailPage() {
 
   const handleContactOwner = async () => {
     if (!isAuthenticated) {
-      setContactError("Please log in to view owner contact details.");
+      setShowAuthModal(true);
       return;
     }
 
+    if (!isPhoneVerified) {
+      setPendingAction("contact");
+      setShowPhoneVerify(true);
+      return;
+    }
+
+    await fetchContactOwner();
+  };
+
+  const fetchContactOwner = async () => {
     // Already revealed
     if (ownerPhone) return;
 
@@ -715,6 +743,28 @@ export default function PropertyDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Phone Verify Modal */}
+      <PhoneVerifyModal
+        isOpen={showPhoneVerify}
+        onClose={() => { setShowPhoneVerify(false); setPendingAction(null); }}
+        onVerified={() => {
+          setShowPhoneVerify(false);
+          // Execute the pending action after verification
+          if (pendingAction === "contact") {
+            fetchContactOwner();
+          } else if (pendingAction === "directions") {
+            openDirections();
+          }
+          setPendingAction(null);
+        }}
+      />
+
+      {/* Auth Modal for non-logged-in users */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </div>
   );
 }

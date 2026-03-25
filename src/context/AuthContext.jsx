@@ -100,9 +100,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ==================== DEPRECATED - Old Email/Password ====================
-  // Removed: login() and register() methods
-
   // ==================== PHONE/OTP AUTH ====================
 
   /**
@@ -139,22 +136,30 @@ export const AuthProvider = ({ children }) => {
   // ==================== GOOGLE AUTH ====================
 
   /**
-   * Google login (may require phone verification)
+   * Google login - creates account immediately for new users
    * @param {string} credential - Google ID token
-   * @returns {Object} Response - may contain {needsPhoneVerification: true} or {token, user}
+   * @returns {Object} Response with { user, isNewUser }
    */
   const googleLogin = async (credential) => {
     const data = await authService.googleLogin(credential);
 
-    // Check if phone verification is needed
-    if (data.needsPhoneVerification) {
-      // Return data with needsPhoneVerification flag - don't login yet
-      return data;
-    }
-
-    // Existing user with phone - login
+    // Account is created/logged in immediately
     setUser(data.user);
     setIsAuthenticated(true);
+    updateAuthCache(data.user);
+    return data; // data.isNewUser tells frontend if this is a new signup
+  };
+
+  // ==================== LINK PHONE ====================
+
+  /**
+   * Link and verify phone number for logged-in user
+   * @param {string} phoneNumber - 10-digit phone number
+   * @param {string} otp - 4-digit OTP code
+   */
+  const linkPhone = async (phoneNumber, otp) => {
+    const data = await authService.linkPhone(phoneNumber, otp);
+    setUser(data.user);
     updateAuthCache(data.user);
     return data;
   };
@@ -215,6 +220,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isAdmin = user?.role === "admin";
+  const isPhoneVerified = user?.phoneVerified === true;
 
   return (
     <AuthContext.Provider
@@ -223,9 +229,11 @@ export const AuthProvider = ({ children }) => {
         loading,
         isAuthenticated,
         isAdmin,
+        isPhoneVerified,
         sendOtp,
         verifyOtp,
         googleLogin,
+        linkPhone,
         completeSignup,
         logout,
         loadUser,

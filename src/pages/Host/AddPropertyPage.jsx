@@ -12,6 +12,8 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import ImageUploader from "../../components/Property/ImageUploader";
 import propertyService from "../../api/propertyService";
+import { useAuth } from "../../context/AuthContext";
+import PhoneVerifyModal from "../../components/Auth/PhoneVerifyModal";
 
 // Fix Leaflet default icon issue with Vite
 delete L.Icon.Default.prototype._getIconUrl;
@@ -41,9 +43,11 @@ const AMENITIES = [
 
 export default function AddPropertyPage() {
   const navigate = useNavigate();
+  const { isPhoneVerified } = useAuth();
   const [currentStage, setCurrentStage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPhoneVerify, setShowPhoneVerify] = useState(!isPhoneVerified);
 
   const [formData, setFormData] = useState({
     // Stage 1: Basic Information
@@ -345,6 +349,20 @@ export default function AddPropertyPage() {
           </div>
         </div>
       </div>
+
+      {/* Phone Verify Modal - blocks property creation until phone is verified */}
+      <PhoneVerifyModal
+        isOpen={showPhoneVerify}
+        onClose={() => {
+          if (!isPhoneVerified) {
+            // If they close without verifying, send them back
+            navigate("/host/dashboard");
+          } else {
+            setShowPhoneVerify(false);
+          }
+        }}
+        onVerified={() => setShowPhoneVerify(false)}
+      />
     </div>
   );
 }
