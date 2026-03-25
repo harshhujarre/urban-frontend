@@ -1,7 +1,9 @@
 import { AuthProvider } from "./context/AuthContext";
 import { SearchProvider } from "./context/SearchContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+
 import Navbar from "./components/Home/Navbar/Navbar";
 import HomePage from "./pages/Home/HomePage";
 import HostDashboard from "./pages/Host/HostDashboard";
@@ -91,13 +93,15 @@ const AppInner = () => {
 const App = () => {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-      <AuthProvider>
-        <SearchProvider>
-          <Router>
-            <AppInner />
-          </Router>
-        </SearchProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <SearchProvider>
+            <Router>
+              <AppInner />
+            </Router>
+          </SearchProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </GoogleOAuthProvider>
   );
 };

@@ -44,7 +44,13 @@ export default function BottomNav() {
   return (
     <>
       {/* Bottom Navigation Bar - Mobile Only */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-t border-gray-200 shadow-lg">
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 backdrop-blur-md shadow-lg"
+        style={{
+          background: "var(--nav-bg)",
+          borderTop: "1px solid var(--nav-border)",
+        }}
+      >
         <div className="flex items-center justify-around h-16 px-2 safe-bottom">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -61,8 +67,9 @@ export default function BottomNav() {
                   }
                 }}
                 className={`flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all duration-200 ${
-                  isActive ? "text-[#FF5A5F]" : "text-gray-600"
+                  isActive ? "text-[#FF5A5F]" : ""
                 }`}
+                style={!isActive ? { color: "var(--text-secondary)" } : {}}
               >
                 {/* Icon */}
                 <div className="relative">

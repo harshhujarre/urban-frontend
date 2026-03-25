@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import authService from "../../api/authService";
 import ProfileImageUpload from "../../components/Account/ProfileImageUpload";
@@ -12,10 +13,13 @@ import {
   Crown,
   Eye,
   Home,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 export default function AccountPage() {
   const { user, isAuthenticated, updateUser } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -29,7 +33,6 @@ export default function AccountPage() {
   const [message, setMessage] = useState({ type: "", text: "" });
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Load user data ONLY on mount
   useEffect(() => {
     if (user) {
       setFormData({
@@ -40,7 +43,7 @@ export default function AccountPage() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]); // Run when user data loads
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -49,16 +52,7 @@ export default function AccountPage() {
   };
 
   const handleImageUpdate = (newImageUrl) => {
-    console.log("Image uploaded - Full URL:", newImageUrl); // Debug log
-    setFormData((prev) => {
-      console.log(
-        "Updating formData.profilePhoto from",
-        prev.profilePhoto,
-        "to",
-        newImageUrl,
-      );
-      return { ...prev, profilePhoto: newImageUrl };
-    });
+    setFormData((prev) => ({ ...prev, profilePhoto: newImageUrl }));
     setHasChanges(true);
   };
 
@@ -69,19 +63,13 @@ export default function AccountPage() {
 
     try {
       const response = await authService.updateProfile(formData);
-
-      // Update user in context
       updateUser(response.user);
-
       setMessage({ type: "success", text: "Profile updated successfully!" });
       setHasChanges(false);
-
-      // Clear message after 3 seconds
       setTimeout(() => {
         setMessage({ type: "", text: "" });
       }, 3000);
     } catch (error) {
-      console.error("Profile update error:", error);
       const errorMessage =
         error.response?.data?.error || "Failed to update profile";
       setMessage({ type: "error", text: errorMessage });
@@ -93,21 +81,35 @@ export default function AccountPage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div
+      className="min-h-screen py-12 px-4 sm:px-6 lg:px-8"
+      style={{ background: "var(--bg-secondary)" }}
+    >
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Account</h1>
-          <p className="mt-2 text-gray-600">
+          <h1
+            className="text-3xl font-bold"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Account
+          </h1>
+          <p className="mt-2" style={{ color: "var(--text-secondary)" }}>
             {user.name}, {user.email}
           </p>
         </div>
 
         {/* Main Card */}
-        <div className="bg-white rounded-xl shadow overflow-hidden">
+        <div
+          className="rounded-xl shadow overflow-hidden"
+          style={{ background: "var(--bg-card)" }}
+        >
           <form onSubmit={handleSubmit}>
             {/* Profile Image Section */}
-            <div className="bg-white px-6 py-8 border-b border-gray-200">
+            <div
+              className="px-6 py-8"
+              style={{ borderBottom: "1px solid var(--border-color)" }}
+            >
               <ProfileImageUpload
                 currentImage={formData.profilePhoto}
                 onImageUpdate={handleImageUpdate}
@@ -115,26 +117,108 @@ export default function AccountPage() {
             </div>
 
             {/* User Info Section */}
-            <div className="px-6 py-6 border-b border-gray-200">
+            <div
+              className="px-6 py-6"
+              style={{ borderBottom: "1px solid var(--border-color)" }}
+            >
               <div className="flex items-center gap-3">
                 <div className="flex-1">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2
+                    className="text-xl font-semibold"
+                    style={{ color: "var(--text-primary)" }}
+                  >
                     {user.name}
                   </h2>
-                  <p className="text-sm text-gray-500">{user.email}</p>
+                  <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                    {user.email}
+                  </p>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-100 border border-gray-200">
-                  <Shield className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-700 capitalize">
+                <div
+                  className="flex items-center gap-2 px-3 py-1 rounded-lg"
+                  style={{
+                    background: "var(--badge-bg)",
+                    border: "1px solid var(--border-color)",
+                  }}
+                >
+                  <Shield
+                    className="w-4 h-4"
+                    style={{ color: "var(--text-secondary)" }}
+                  />
+                  <span
+                    className="text-sm font-medium capitalize"
+                    style={{ color: "var(--text-primary)" }}
+                  >
                     {user.role}
                   </span>
                 </div>
               </div>
             </div>
 
+            {/* Appearance Section */}
+            <div
+              className="px-6 py-6"
+              style={{ borderBottom: "1px solid var(--border-color)" }}
+            >
+              <h3
+                className="text-lg font-semibold mb-4"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Appearance
+              </h3>
+              <div
+                className="flex items-center justify-between p-4 rounded-xl"
+                style={{
+                  background: "var(--bg-secondary)",
+                  border: "1px solid var(--border-color)",
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  {theme === "dark" ? (
+                    <Moon className="w-5 h-5 text-indigo-400" />
+                  ) : (
+                    <Sun className="w-5 h-5 text-amber-500" />
+                  )}
+                  <div>
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      {theme === "dark" ? "Dark Mode" : "Light Mode"}
+                    </p>
+                    <p
+                      className="text-xs"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      Switch between light and dark appearance
+                    </p>
+                  </div>
+                </div>
+                {/* Toggle Switch */}
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${
+                    theme === "dark" ? "bg-indigo-600" : "bg-gray-300"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform duration-300 ${
+                      theme === "dark" ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
             {/* Account Type & Usage Section */}
-            <div className="px-6 py-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div
+              className="px-6 py-6"
+              style={{ borderBottom: "1px solid var(--border-color)" }}
+            >
+              <h3
+                className="text-lg font-semibold mb-4"
+                style={{ color: "var(--text-primary)" }}
+              >
                 Account Plan
               </h3>
               <div className="flex items-center gap-3 mb-4">
@@ -142,8 +226,17 @@ export default function AccountPage() {
                   className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold ${
                     (user.accountType || "free") === "premium"
                       ? "bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200"
-                      : "bg-gray-100 text-gray-700 border border-gray-200"
+                      : ""
                   }`}
+                  style={
+                    (user.accountType || "free") !== "premium"
+                      ? {
+                          background: "var(--badge-bg)",
+                          color: "var(--badge-text)",
+                          border: "1px solid var(--border-color)",
+                        }
+                      : {}
+                  }
                 >
                   {(user.accountType || "free") === "premium" && (
                     <Crown className="w-4 h-4" />
@@ -155,32 +248,60 @@ export default function AccountPage() {
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div
+                  className="flex items-center gap-3 p-3 rounded-lg"
+                  style={{ background: "var(--bg-secondary)" }}
+                >
                   <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center">
                     <Eye className="w-4 h-4 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Contact Views</p>
-                    <p className="font-semibold text-gray-900">
+                    <p
+                      className="text-xs"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      Contact Views
+                    </p>
+                    <p
+                      className="font-semibold"
+                      style={{ color: "var(--text-primary)" }}
+                    >
                       {user.contactViewsUsed || 0} /{" "}
                       {(user.accountType || "free") === "premium" ? 10 : 1}
-                      <span className="text-xs text-gray-500 font-normal">
+                      <span
+                        className="text-xs font-normal"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
                         {" "}
                         this month
                       </span>
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div
+                  className="flex items-center gap-3 p-3 rounded-lg"
+                  style={{ background: "var(--bg-secondary)" }}
+                >
                   <div className="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center">
                     <Home className="w-4 h-4 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Listings</p>
-                    <p className="font-semibold text-gray-900">
+                    <p
+                      className="text-xs"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      Listings
+                    </p>
+                    <p
+                      className="font-semibold"
+                      style={{ color: "var(--text-primary)" }}
+                    >
                       {user.propertiesListedThisMonth || 0} /{" "}
                       {(user.accountType || "free") === "premium" ? 20 : 2}
-                      <span className="text-xs text-gray-500 font-normal">
+                      <span
+                        className="text-xs font-normal"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
                         {" "}
                         this month
                       </span>
@@ -196,7 +317,8 @@ export default function AccountPage() {
               <div>
                 <label
                   htmlFor="name"
-                  className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2"
+                  className="flex items-center gap-2 text-sm font-medium mb-2"
+                  style={{ color: "var(--text-primary)" }}
                 >
                   <UserIcon className="w-4 h-4" />
                   Full Name
@@ -210,7 +332,12 @@ export default function AccountPage() {
                   required
                   minLength={2}
                   maxLength={50}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  style={{
+                    background: "var(--bg-input)",
+                    border: "1px solid var(--border-color)",
+                    color: "var(--text-primary)",
+                  }}
                   placeholder="Enter your full name"
                 />
               </div>
@@ -218,11 +345,15 @@ export default function AccountPage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2"
+                  className="flex items-center gap-2 text-sm font-medium mb-2"
+                  style={{ color: "var(--text-primary)" }}
                 >
                   <Mail className="w-4 h-4" />
                   Email Address
-                  <span className="text-xs text-gray-500 font-normal">
+                  <span
+                    className="text-xs font-normal"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
                     (Read-only)
                   </span>
                 </label>
@@ -233,7 +364,12 @@ export default function AccountPage() {
                   value={formData.email}
                   readOnly
                   disabled
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                  className="w-full px-4 py-3 rounded-lg cursor-not-allowed"
+                  style={{
+                    background: "var(--bg-secondary)",
+                    border: "1px solid var(--border-color)",
+                    color: "var(--text-secondary)",
+                  }}
                   placeholder="your.email@example.com"
                 />
               </div>
@@ -241,11 +377,15 @@ export default function AccountPage() {
               <div>
                 <label
                   htmlFor="phone"
-                  className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2"
+                  className="flex items-center gap-2 text-sm font-medium mb-2"
+                  style={{ color: "var(--text-primary)" }}
                 >
                   <Phone className="w-4 h-4" />
                   Phone Number
-                  <span className="text-xs text-gray-500 font-normal">
+                  <span
+                    className="text-xs font-normal"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
                     (Verified)
                   </span>
                 </label>
@@ -256,7 +396,12 @@ export default function AccountPage() {
                   value={formData.phone}
                   readOnly
                   disabled
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                  className="w-full px-4 py-3 rounded-lg cursor-not-allowed"
+                  style={{
+                    background: "var(--bg-secondary)",
+                    border: "1px solid var(--border-color)",
+                    color: "var(--text-secondary)",
+                  }}
                   placeholder="+91 XXXXXXXXXX"
                 />
               </div>
@@ -276,18 +421,26 @@ export default function AccountPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3">
+            <div
+              className="px-6 py-4 flex justify-end gap-3"
+              style={{ background: "var(--bg-secondary)" }}
+            >
               <button
                 type="button"
                 onClick={() => navigate("/")}
-                className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-medium"
+                className="px-6 py-2.5 rounded-lg transition-all font-medium"
+                style={{
+                  color: "var(--text-primary)",
+                  background: "var(--bg-card)",
+                  border: "1px solid var(--border-color)",
+                }}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading || !hasChanges}
-                className="px-6 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium flex items-center gap-2"
+                className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium flex items-center gap-2"
               >
                 <Save className="w-4 h-4" />
                 {loading ? "Saving..." : "Save"}
@@ -297,7 +450,10 @@ export default function AccountPage() {
         </div>
 
         {/* Additional Info */}
-        <div className="mt-6 text-center text-sm text-gray-500">
+        <div
+          className="mt-6 text-center text-sm"
+          style={{ color: "var(--text-secondary)" }}
+        >
           <p>Member since {new Date(user.createdAt).toLocaleDateString()}</p>
         </div>
       </div>

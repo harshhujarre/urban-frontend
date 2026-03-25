@@ -184,10 +184,10 @@ export default function PropertyDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg-primary)" }}>
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-[#FF5A5F] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading property...</p>
+          <p style={{ color: "var(--text-secondary)" }}>Loading property...</p>
         </div>
       </div>
     );
@@ -195,12 +195,12 @@ export default function PropertyDetailPage() {
 
   if (error || !property) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "var(--bg-primary)" }}>
         <div className="text-center">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+          <h2 className="text-2xl font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
             Property not found
           </h2>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <p className="mb-6" style={{ color: "var(--text-secondary)" }}>{error}</p>
           <button
             onClick={() => navigate("/")}
             className="px-6 py-3 bg-[#FF5A5F] text-white rounded-lg hover:bg-[#E0484D] transition"
@@ -213,7 +213,7 @@ export default function PropertyDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
       {/* Full Screen Photo Gallery Modal */}
       {showAllPhotos && (
         <div className="fixed inset-0 bg-black z-50 overflow-y-auto">
@@ -248,7 +248,8 @@ export default function PropertyDetailPage() {
         {/* Mobile Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="md:hidden flex items-center gap-2 text-gray-700 hover:text-gray-900 mb-4 -ml-2"
+          className="md:hidden flex items-center gap-2 mb-4 -ml-2"
+          style={{ color: "var(--text-secondary)" }}
         >
           <ArrowLeft className="w-5 h-5" />
           <span className="font-medium">Back</span>
@@ -256,11 +257,11 @@ export default function PropertyDetailPage() {
 
         {/* Title Section */}
         <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-900 mb-2">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
             {property.title}
           </h1>
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 text-gray-600">
+            <div className="flex items-center gap-2" style={{ color: "var(--text-secondary)" }}>
               <MapPin className="w-5 h-5" />
               <span>
                 {property.location?.address && `${property.location.address}, `}
@@ -270,7 +271,8 @@ export default function PropertyDetailPage() {
             </div>
             <button
               onClick={() => {}}
-              className="flex items-center gap-2 text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-lg transition"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg transition"
+              style={{ color: "var(--text-secondary)" }}
             >
               <Share2 size={16} />
               <span className="text-sm font-medium">Share</span>
@@ -361,7 +363,8 @@ export default function PropertyDetailPage() {
           {property.images && property.images.length > 0 && (
             <button
               onClick={() => setShowAllPhotos(true)}
-              className="mt-4 px-6 py-3 bg-white border-2 border-gray-900 text-gray-900 rounded-lg hover:bg-gray-50 transition font-medium"
+              className="mt-4 px-6 py-3 rounded-lg transition font-medium"
+              style={{ background: "var(--bg-card)", border: "2px solid var(--text-primary)", color: "var(--text-primary)" }}
             >
               Show all {property.images.length} photos
             </button>
@@ -413,8 +416,8 @@ export default function PropertyDetailPage() {
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2">
             {/* Property Stats */}
-            <div className="pb-6 border-b border-gray-200">
-              <div className="flex flex-wrap gap-4 text-gray-700">
+            <div className="pb-6" style={{ borderBottom: "1px solid var(--border-color)" }}>
+              <div className="flex flex-wrap gap-4" style={{ color: "var(--text-secondary)" }}>
                 <div className="flex items-center gap-2">
                   <Users size={20} />
                   <span>{property.maxGuests} guests</span>
@@ -436,28 +439,29 @@ export default function PropertyDetailPage() {
             </div>
 
             {/* Description */}
-            <div className="py-6 border-b border-gray-200">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <div className="py-6" style={{ borderBottom: "1px solid var(--border-color)" }}>
+              <h2 className="text-2xl font-semibold mb-4" style={{ color: "var(--text-primary)" }}>
                 About this place
               </h2>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+              <p className="leading-relaxed whitespace-pre-line" style={{ color: "var(--text-secondary)" }}>
                 {property.description}
               </p>
             </div>
 
             {/* Amenities */}
             {property.amenities && property.amenities.length > 0 && (
-              <div className="py-6 border-b border-gray-200">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+              <div className="py-6" style={{ borderBottom: "1px solid var(--border-color)" }}>
+                <h2 className="text-2xl font-semibold mb-6" style={{ color: "var(--text-primary)" }}>
                   What you'll get
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {property.amenities.map((amenity, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-4 text-gray-700"
+                      className="flex items-center gap-4"
+                      style={{ color: "var(--text-secondary)" }}
                     >
-                      <div className="w-6 h-6 flex items-center justify-center text-gray-600">
+                      <div className="w-6 h-6 flex items-center justify-center">
                         {getAmenityIcon(amenity) || (
                           <div className="w-2 h-2 bg-[#FF5A5F] rounded-full" />
                         )}
@@ -470,33 +474,33 @@ export default function PropertyDetailPage() {
             )}
 
             {/* Location Map Section */}
-            <div className="py-6 border-b border-gray-200">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            <div className="py-6" style={{ borderBottom: "1px solid var(--border-color)" }}>
+              <h2 className="text-2xl font-semibold mb-4" style={{ color: "var(--text-primary)" }}>
                 Where you'll be
               </h2>
-              <p className="text-gray-700 mb-4">
+              <p className="mb-4" style={{ color: "var(--text-secondary)" }}>
                 {property.location?.city}
                 {property.location?.state && `, ${property.location.state}`}
               </p>
 
               {/* Interactive Map - always show */}
-              <div className="bg-gray-100 rounded-lg p-6 mb-4">
+              <div className="rounded-lg p-6 mb-4" style={{ background: "var(--bg-secondary)" }}>
                 {property.coordinates?.latitude &&
                 property.coordinates?.longitude ? (
                   <>
-                    <div className="flex items-center gap-2 text-gray-700 mb-4">
+                    <div className="flex items-center gap-2 mb-4" style={{ color: "var(--text-secondary)" }}>
                       <MapPin className="w-5 h-5 text-[#FF5A5F]" />
                       <span className="font-medium">
                         Exact location provided after booking
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mb-4">
+                    <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
                       Coordinates: {property.coordinates.latitude.toFixed(4)},{" "}
                       {property.coordinates.longitude.toFixed(4)}
                     </p>
                   </>
                 ) : (
-                  <div className="flex items-center gap-2 text-gray-700 mb-4">
+                  <div className="flex items-center gap-2 mb-4" style={{ color: "var(--text-secondary)" }}>
                     <MapPin className="w-5 h-5 text-[#FF5A5F]" />
                     <span className="font-medium">
                       Approximate area shown - exact location provided after
@@ -565,18 +569,18 @@ export default function PropertyDetailPage() {
             {/* Host Information */}
             {property.host && (
               <div className="py-6">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                <h2 className="text-2xl font-semibold mb-4" style={{ color: "var(--text-primary)" }}>
                   Meet your host
                 </h2>
-                <div className="flex items-start gap-4 p-6 bg-gray-50 rounded-xl">
+                <div className="flex items-start gap-4 p-6 rounded-xl" style={{ background: "var(--bg-secondary)" }}>
                   <div className="w-16 h-16 bg-[#FF5A5F] rounded-full flex items-center justify-center text-white text-2xl font-semibold flex-shrink-0">
                     {property.host.name?.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                    <h3 className="text-xl font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
                       {property.host.name}
                     </h3>
-                    <p className="text-gray-600">{property.host.email}</p>
+                    <p style={{ color: "var(--text-secondary)" }}>{property.host.email}</p>
                   </div>
                 </div>
               </div>
@@ -589,16 +593,16 @@ export default function PropertyDetailPage() {
           {/* Right Column - Sticky Pricing Card */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
-              <div className="border-2 border-gray-200 rounded-xl shadow-lg p-6">
+              <div className="rounded-xl shadow-lg p-6" style={{ border: "2px solid var(--border-color)", background: "var(--bg-card)" }}>
                 {/* Price */}
                 <div className="mb-6">
                   <div className="flex items-baseline gap-2 mb-2">
-                    <span className="text-3xl font-semibold text-gray-900">
+                    <span className="text-3xl font-semibold" style={{ color: "var(--text-primary)" }}>
                       {formatPrice(
                         property.rentAmount || property.pricePerNight,
                       )}
                     </span>
-                    <span className="text-gray-600">
+                    <span style={{ color: "var(--text-secondary)" }}>
                       {property.rentType === "per_person"
                         ? "/ person"
                         : "/ night"}
@@ -623,9 +627,7 @@ export default function PropertyDetailPage() {
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Owner Contact</p>
-                        <p className="font-semibold text-gray-900">
-                          {ownerName}
-                        </p>
+                        <p className="font-semibold text-gray-800">{ownerName}</p>
                       </div>
                     </div>
                     <a
@@ -682,21 +684,21 @@ export default function PropertyDetailPage() {
                   </>
                 )}
 
-                <p className="text-center text-sm text-gray-500 mb-6">
+                <p className="text-center text-sm mb-6" style={{ color: "var(--text-muted)" }}>
                   You won't be charged
                 </p>
 
                 {/* Property Quick Stats */}
-                <div className="space-y-3 pt-6 border-t border-gray-200">
-                  <div className="flex items-center justify-between text-gray-700">
+                <div className="space-y-3 pt-6" style={{ borderTop: "1px solid var(--border-color)" }}>
+                  <div className="flex items-center justify-between" style={{ color: "var(--text-secondary)" }}>
                     <span>Max Guests</span>
                     <span className="font-medium">{property.maxGuests}</span>
                   </div>
-                  <div className="flex items-center justify-between text-gray-700">
+                  <div className="flex items-center justify-between" style={{ color: "var(--text-secondary)" }}>
                     <span>Bedrooms</span>
                     <span className="font-medium">{property.bedrooms}</span>
                   </div>
-                  <div className="flex items-center justify-between text-gray-700">
+                  <div className="flex items-center justify-between" style={{ color: "var(--text-secondary)" }}>
                     <span>Bathrooms</span>
                     <span className="font-medium">{property.bathrooms}</span>
                   </div>
@@ -705,7 +707,7 @@ export default function PropertyDetailPage() {
 
               {/* Report Listing */}
               <div className="mt-6 text-center">
-                <button className="text-gray-600 hover:text-gray-900 underline text-sm">
+                <button className="underline text-sm" style={{ color: "var(--text-muted)" }}>
                   Report this
                 </button>
               </div>

@@ -139,13 +139,13 @@ export default function HostDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div style={{ background: "var(--bg-card)", borderBottom: "1px solid var(--border-color)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-semibold text-gray-900">
+              <h1 className="text-3xl font-semibold" style={{ color: "var(--text-primary)" }}>
                 Host Dashboard
               </h1>
               {/* Account Type Badge */}
@@ -160,7 +160,7 @@ export default function HostDashboard() {
                   {accountType === "premium" && <Crown className="w-3 h-3" />}
                   {accountType === "premium" ? "Premium" : "Free"} Account
                 </span>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
                   {listingsUsed}/{listingLimit} listings this month
                 </span>
               </div>
@@ -225,7 +225,8 @@ export default function HostDashboard() {
               {statCards.map((stat) => (
                 <div
                   key={stat.label}
-                  className={`bg-white rounded-xl border ${stat.border} p-5 flex items-center gap-4 transition hover:shadow-md`}
+                  className={`rounded-xl border p-5 flex items-center gap-4 transition hover:shadow-md ${stat.border}`}
+                  style={{ background: "var(--bg-card)" }}
                 >
                   <div
                     className={`w-12 h-12 rounded-xl ${stat.color} flex items-center justify-center flex-shrink-0`}
@@ -233,10 +234,10 @@ export default function HostDashboard() {
                     <stat.icon className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
                       {stat.value}
                     </p>
-                    <p className="text-xs text-gray-500 font-medium">
+                    <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                       {stat.label}
                     </p>
                   </div>
@@ -245,10 +246,10 @@ export default function HostDashboard() {
             </div>
 
             {/* Views Chart */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
+            <div className="rounded-xl p-6 mb-8" style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)" }}>
               <div className="flex items-center gap-2 mb-6">
                 <TrendingUp className="w-5 h-5 text-[#FF5A5F]" />
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
                   Views — Last 30 Days
                 </h2>
               </div>
@@ -275,24 +276,24 @@ export default function HostDashboard() {
                         />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                     <XAxis
                       dataKey="date"
-                      tick={{ fontSize: 11, fill: "#9ca3af" }}
+                      tick={{ fontSize: 11, fill: "var(--text-muted)" }}
                       tickLine={false}
-                      axisLine={{ stroke: "#e5e7eb" }}
+                      axisLine={{ stroke: "var(--border-color)" }}
                       interval="preserveStartEnd"
                     />
                     <YAxis
-                      tick={{ fontSize: 11, fill: "#9ca3af" }}
+                      tick={{ fontSize: 11, fill: "var(--text-muted)" }}
                       tickLine={false}
                       axisLine={false}
                       allowDecimals={false}
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "#fff",
-                        border: "1px solid #e5e7eb",
+                        backgroundColor: "var(--bg-card)",
+                        border: "1px solid var(--border-color)",
                         borderRadius: "12px",
                         fontSize: "13px",
                         boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
@@ -312,7 +313,7 @@ export default function HostDashboard() {
 
             {/* Properties Grid */}
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
                 Your Properties ({properties.length})
               </h2>
             </div>
@@ -347,13 +348,13 @@ export default function HostDashboard() {
 function EmptyState({ onAddClick, canAddMore }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-4">
-      <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+      <div className="w-24 h-24 rounded-full flex items-center justify-center mb-6" style={{ background: "var(--bg-secondary)" }}>
         <Home className="w-12 h-12 text-gray-400" />
       </div>
-      <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+      <h3 className="text-2xl font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
         No properties yet
       </h3>
-      <p className="text-gray-600 text-center max-w-md mb-8">
+      <p className="text-center max-w-md mb-8" style={{ color: "var(--text-secondary)" }}>
         Start earning by listing your first property. It only takes a few
         minutes to create a listing.
       </p>

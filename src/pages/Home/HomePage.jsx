@@ -14,7 +14,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(() => window.innerWidth >= 1024);
 
-  // Reload whenever any URL filter or page changes
   useEffect(() => {
     loadProperties();
   }, [
@@ -32,19 +31,15 @@ export default function HomePage() {
     try {
       setLoading(true);
       const queryFilters = {};
-
       if (filters.q)        queryFilters.q        = filters.q;
       if (filters.city)     queryFilters.city     = filters.city;
       if (filters.minPrice) queryFilters.minPrice = filters.minPrice;
       if (filters.maxPrice) queryFilters.maxPrice = filters.maxPrice;
       if (filters.bedrooms) queryFilters.bedrooms = filters.bedrooms;
       if (filters.guests)   queryFilters.guests   = filters.guests;
-      if (filters.amenities.length > 0) {
-        queryFilters.amenities = filters.amenities.join(",");
-      }
+      if (filters.amenities.length > 0) queryFilters.amenities = filters.amenities.join(",");
       queryFilters.page  = filters.page  || "1";
       queryFilters.limit = "20";
-
       const data = await propertyService.getProperties(queryFilters);
       setProperties(data.data   || []);
       setTotalPages(data.totalPages || 1);
@@ -56,7 +51,6 @@ export default function HomePage() {
     }
   };
 
-  // Adapters so FilterSidebar's legacy onFilterChange API still works
   const handleFilterChange = (newFilters) => {
     if (newFilters.city     !== filters.city)     setFilter("city",     newFilters.city);
     if (newFilters.minPrice !== filters.minPrice) setFilter("minPrice", newFilters.minPrice);
@@ -74,14 +68,15 @@ export default function HomePage() {
   const currentPage = parseInt(filters.page) || 1;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-20">
 
         {/* Desktop Filter Toggle */}
         <div className="hidden lg:flex items-center justify-between mb-6">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-full hover:shadow-md transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-full hover:shadow-md transition"
+            style={{ border: "1px solid var(--border-color)", color: "var(--text-primary)" }}
           >
             <SlidersHorizontal className="w-4 h-4" />
             <span className="text-sm">{showFilters ? "Hide Filters" : "Show Filters"}</span>
@@ -96,16 +91,17 @@ export default function HomePage() {
         {/* Mobile Filter Toggle */}
         <div className="lg:hidden mb-6 flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
               {filters.city ? `Stays in ${filters.city}` : "Explore Stays"}
             </h2>
-            <p className="text-gray-600 text-sm mt-1">
+            <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
               {totalCount} {totalCount === 1 ? "property" : "properties"}
             </p>
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-full hover:shadow-md transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-full hover:shadow-md transition"
+            style={{ border: "1px solid var(--border-color)", color: "var(--text-primary)" }}
           >
             <SlidersHorizontal className="w-4 h-4" />
             <span className="text-sm">Filters</span>
@@ -137,10 +133,10 @@ export default function HomePage() {
             {/* Desktop Header */}
             <div className="hidden lg:flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900">
+                <h2 className="text-2xl font-semibold" style={{ color: "var(--text-primary)" }}>
                   {filters.city ? `Stays in ${filters.city}` : "Explore All Stays"}
                 </h2>
-                <p className="text-gray-600 mt-1">
+                <p className="mt-1" style={{ color: "var(--text-secondary)" }}>
                   {totalCount} {totalCount === 1 ? "property" : "properties"} available
                 </p>
               </div>
@@ -159,7 +155,8 @@ export default function HomePage() {
                 <button
                   onClick={() => setPage(currentPage - 1)}
                   disabled={currentPage <= 1}
-                  className="flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-full text-sm font-medium hover:shadow-md transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium hover:shadow-md transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ border: "1px solid var(--border-color)", color: "var(--text-primary)" }}
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Previous
@@ -175,7 +172,7 @@ export default function HomePage() {
                     }, [])
                     .map((item, idx) =>
                       item === "..." ? (
-                        <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 text-sm">…</span>
+                        <span key={`ellipsis-${idx}`} className="px-2 text-sm" style={{ color: "var(--text-muted)" }}>…</span>
                       ) : (
                         <button
                           key={item}
@@ -183,8 +180,9 @@ export default function HomePage() {
                           className={`w-9 h-9 rounded-full text-sm font-medium transition ${
                             item === currentPage
                               ? "bg-[#FF5A5F] text-white"
-                              : "border border-gray-300 hover:border-[#FF5A5F] hover:text-[#FF5A5F]"
+                              : ""
                           }`}
+                          style={item !== currentPage ? { border: "1px solid var(--border-color)", color: "var(--text-primary)" } : {}}
                         >
                           {item}
                         </button>
@@ -195,7 +193,8 @@ export default function HomePage() {
                 <button
                   onClick={() => setPage(currentPage + 1)}
                   disabled={currentPage >= totalPages}
-                  className="flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-full text-sm font-medium hover:shadow-md transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium hover:shadow-md transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ border: "1px solid var(--border-color)", color: "var(--text-primary)" }}
                 >
                   Next
                   <ChevronRight className="w-4 h-4" />
@@ -210,11 +209,17 @@ export default function HomePage() {
       {showFilters && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowFilters(false)} />
-          <div className="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-white shadow-xl overflow-y-auto">
+          <div
+            className="absolute right-0 top-0 bottom-0 w-full max-w-sm shadow-xl overflow-y-auto"
+            style={{ background: "var(--bg-card)" }}
+          >
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold">Filters</h3>
-                <button onClick={() => setShowFilters(false)} className="text-gray-500 hover:text-gray-700">
+                <h3 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>Filters</h3>
+                <button
+                  onClick={() => setShowFilters(false)}
+                  style={{ color: "var(--text-secondary)" }}
+                >
                   ✕
                 </button>
               </div>

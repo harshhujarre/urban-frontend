@@ -17,7 +17,7 @@ const STATUS_STYLES = {
   pending:   "bg-amber-500/20 text-amber-400",
   confirmed: "bg-green-500/20 text-green-400",
   rejected:  "bg-red-500/20 text-red-400",
-  cancelled: "bg-gray-700 text-gray-400",
+  cancelled: "bg-gray-500/20 text-gray-400",
 };
 
 const AdminBookingsPage = () => {
@@ -71,9 +71,9 @@ const AdminBookingsPage = () => {
   return (
     <AdminLayout>
       {toast && (
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 bg-gray-800 border border-gray-700 text-white text-sm px-4 py-3 rounded-xl shadow-lg">
+        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 text-white text-sm px-4 py-3 rounded-xl shadow-lg" style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)" }}>
           <CheckCheck className="w-4 h-4 text-green-400" />
-          {toast}
+          <span style={{ color: "var(--text-primary)" }}>{toast}</span>
         </div>
       )}
 
@@ -83,8 +83,8 @@ const AdminBookingsPage = () => {
           <div className="flex items-center gap-3">
             <CalendarCheck className="w-6 h-6 text-amber-400" />
             <div>
-              <h1 className="text-2xl font-bold text-white">Bookings</h1>
-              <p className="text-sm text-gray-400">{pagination?.total?.toLocaleString() || 0} total bookings</p>
+              <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Bookings</h1>
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>{pagination?.total?.toLocaleString() || 0} total bookings</p>
             </div>
           </div>
           <button
@@ -101,7 +101,8 @@ const AdminBookingsPage = () => {
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-            className="px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500"
+            className="px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-amber-500"
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", color: "var(--text-primary)" }}
           >
             <option value="">All Statuses</option>
             <option value="pending">Pending</option>
@@ -114,24 +115,26 @@ const AdminBookingsPage = () => {
               type="date"
               value={fromDate}
               onChange={(e) => { setFromDate(e.target.value); setPage(1); }}
-              className="flex-1 px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500"
+              className="flex-1 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-amber-500"
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", color: "var(--text-primary)" }}
             />
-            <span className="text-gray-500 text-sm shrink-0">to</span>
+            <span className="text-sm shrink-0" style={{ color: "var(--text-secondary)" }}>to</span>
             <input
               type="date"
               value={toDate}
               onChange={(e) => { setToDate(e.target.value); setPage(1); }}
-              className="flex-1 px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500"
+              className="flex-1 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-amber-500"
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)", color: "var(--text-primary)" }}
             />
           </div>
         </div>
 
         {/* Table */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+        <div className="rounded-2xl overflow-hidden" style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)" }}>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-800 text-left text-xs text-gray-500 uppercase tracking-wide">
+                <tr className="text-left text-xs uppercase tracking-wide" style={{ borderBottom: "1px solid var(--border-color)", color: "var(--text-muted)" }}>
                   <th className="px-5 py-4 font-medium">Property</th>
                   <th className="px-5 py-4 font-medium">Guest</th>
                   <th className="px-5 py-4 font-medium">Host</th>
@@ -141,33 +144,39 @@ const AdminBookingsPage = () => {
                   <th className="px-5 py-4 font-medium">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800/60">
+              <tbody>
                 {loading ? (
                   <tr><td colSpan={7} className="py-16 text-center"><div className="w-6 h-6 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" /></td></tr>
                 ) : data.data.length === 0 ? (
-                  <tr><td colSpan={7} className="py-16 text-center text-gray-500">No bookings found.</td></tr>
+                  <tr><td colSpan={7} className="py-16 text-center" style={{ color: "var(--text-muted)" }}>No bookings found.</td></tr>
                 ) : (
                   data.data.map((b) => (
-                    <tr key={b._id} className="hover:bg-gray-800/40 transition-colors">
+                    <tr
+                      key={b._id}
+                      className="transition-colors"
+                      style={{ borderBottom: "1px solid var(--border-color)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-hover)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    >
                       <td className="px-5 py-4">
-                        <p className="font-medium text-white line-clamp-1 max-w-[160px]">{b.propertyId?.title || "Deleted"}</p>
-                        <p className="text-xs text-gray-500">{b.propertyId?.location?.city}</p>
+                        <p className="font-medium line-clamp-1 max-w-[160px]" style={{ color: "var(--text-primary)" }}>{b.propertyId?.title || "Deleted"}</p>
+                        <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{b.propertyId?.location?.city}</p>
                       </td>
                       <td className="px-5 py-4">
-                        <p className="text-white">{b.guestId?.name || "—"}</p>
-                        <p className="text-xs text-gray-500">{b.guestId?.phone}</p>
+                        <p style={{ color: "var(--text-primary)" }}>{b.guestId?.name || "—"}</p>
+                        <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{b.guestId?.phone}</p>
                       </td>
                       <td className="px-5 py-4">
-                        <p className="text-white">{b.hostId?.name || "—"}</p>
-                        <p className="text-xs text-gray-500">{b.hostId?.phone}</p>
+                        <p style={{ color: "var(--text-primary)" }}>{b.hostId?.name || "—"}</p>
+                        <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{b.hostId?.phone}</p>
                       </td>
-                      <td className="px-5 py-4 text-gray-400 text-xs whitespace-nowrap">
+                      <td className="px-5 py-4 text-xs whitespace-nowrap" style={{ color: "var(--text-secondary)" }}>
                         {new Date(b.checkIn).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                         {" – "}
                         {new Date(b.checkOut).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                       </td>
-                      <td className="px-5 py-4 text-gray-400">{b.guests}</td>
-                      <td className="px-5 py-4 text-white font-medium">₹{(b.totalPrice || 0).toLocaleString()}</td>
+                      <td className="px-5 py-4" style={{ color: "var(--text-secondary)" }}>{b.guests}</td>
+                      <td className="px-5 py-4 font-medium" style={{ color: "var(--text-primary)" }}>₹{(b.totalPrice || 0).toLocaleString()}</td>
                       <td className="px-5 py-4">
                         <select
                           value={b.status}
@@ -187,11 +196,11 @@ const AdminBookingsPage = () => {
             </table>
           </div>
           {pagination?.pages > 1 && (
-            <div className="flex items-center justify-between px-5 py-4 border-t border-gray-800">
-              <p className="text-xs text-gray-500">Page {pagination.page} of {pagination.pages}</p>
+            <div className="flex items-center justify-between px-5 py-4" style={{ borderTop: "1px solid var(--border-color)" }}>
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Page {pagination.page} of {pagination.pages}</p>
               <div className="flex gap-2">
-                <button disabled={page === 1} onClick={() => setPage((p) => p - 1)} className="p-2 rounded-lg border border-gray-700 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"><ChevronLeft className="w-4 h-4" /></button>
-                <button disabled={page === pagination.pages} onClick={() => setPage((p) => p + 1)} className="p-2 rounded-lg border border-gray-700 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"><ChevronRight className="w-4 h-4" /></button>
+                <button disabled={page === 1} onClick={() => setPage((p) => p - 1)} className="p-2 rounded-lg text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors" style={{ border: "1px solid var(--border-color)" }}><ChevronLeft className="w-4 h-4" /></button>
+                <button disabled={page === pagination.pages} onClick={() => setPage((p) => p + 1)} className="p-2 rounded-lg text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors" style={{ border: "1px solid var(--border-color)" }}><ChevronRight className="w-4 h-4" /></button>
               </div>
             </div>
           )}

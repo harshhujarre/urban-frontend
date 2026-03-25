@@ -8,14 +8,12 @@ const SearchBar = ({ isAtTop = true }) => {
   const navigate = useNavigate();
   const { cities } = useSearchContext();
 
-  const [isExpanded, setIsExpanded] = useState(false);   // mobile overlay
+  const [isExpanded, setIsExpanded] = useState(false);
   const [cityQuery, setCityQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Outer wrapper ref – used to detect clicks outside the whole search widget
   const wrapperRef = useRef(null);
 
-  // Fuse.js fuzzy matcher against the live city list from DB
   const fuse = useMemo(
     () => new Fuse(cities, { threshold: 0.4, includeScore: true }),
     [cities]
@@ -41,7 +39,6 @@ const SearchBar = ({ isAtTop = true }) => {
     navigate(`/?city=${encodeURIComponent(city)}`);
   };
 
-  // Close dropdown when clicking outside the whole widget
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -54,22 +51,27 @@ const SearchBar = ({ isAtTop = true }) => {
 
   const SuggestionList = () =>
     showSuggestions && filteredCities.length > 0 ? (
-      <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 z-[100] overflow-hidden">
+      <div
+        className="absolute top-full left-0 right-0 mt-2 rounded-xl shadow-2xl z-[100] overflow-hidden"
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)" }}
+      >
         <div className="max-h-72 overflow-y-auto p-2">
           {filteredCities.map((city) => (
             <button
               key={city}
-              className="w-full flex items-center gap-3 px-3 py-3 hover:bg-gray-50 rounded-lg transition text-left"
+              className="w-full flex items-center gap-3 px-3 py-3 rounded-lg transition text-left"
+              style={{ color: "var(--text-primary)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-hover)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               onMouseDown={(e) => {
-                // Prevent the input's onBlur from firing before onClick
                 e.preventDefault();
                 handleCitySelect(city);
               }}
             >
-              <div className="bg-gray-100 p-2 rounded-lg flex-shrink-0">
-                <MapPin size={15} className="text-gray-600" />
+              <div className="p-2 rounded-lg flex-shrink-0" style={{ background: "var(--bg-secondary)" }}>
+                <MapPin size={15} style={{ color: "var(--text-secondary)" }} />
               </div>
-              <span className="text-gray-800 font-medium text-sm">{city}</span>
+              <span className="font-medium text-sm">{city}</span>
             </button>
           ))}
         </div>
@@ -81,43 +83,47 @@ const SearchBar = ({ isAtTop = true }) => {
 
       {/* ─── Mobile: collapsed pill ─── */}
       <button
-        className={`md:hidden flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2 shadow-sm transition-all duration-300 w-full ${
+        className={`md:hidden flex items-center gap-2 rounded-full px-4 py-2 shadow-sm transition-all duration-300 w-full ${
           isExpanded ? "opacity-0 pointer-events-none absolute" : "opacity-100"
         }`}
+        style={{ background: "var(--bg-secondary)", color: "var(--text-secondary)" }}
         onClick={() => setIsExpanded(true)}
         aria-label="Search"
       >
         <SearchIcon size={16} className="text-[#FF385c]" />
-        <span className="text-sm font-medium text-gray-600 flex-1 text-left">
+        <span className="text-sm font-medium flex-1 text-left">
           {cityQuery || "Search destinations"}
         </span>
       </button>
 
       {/* ─── Mobile: full-screen overlay ─── */}
       <div
-        className={`md:hidden fixed inset-0 bg-white z-[60] flex flex-col gap-4 p-4 transition-all duration-300 overflow-y-auto ${
+        className={`md:hidden fixed inset-0 z-[60] flex flex-col gap-4 p-4 transition-all duration-300 overflow-y-auto ${
           isExpanded
             ? "opacity-100 visible translate-y-0"
             : "opacity-0 invisible translate-y-4 pointer-events-none"
         }`}
+        style={{ background: "var(--bg-card)" }}
       >
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-lg font-semibold text-gray-800">Search Destinations</h2>
+          <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>Search Destinations</h2>
           <button
             onClick={() => setIsExpanded(false)}
-            className="p-2 rounded-full hover:bg-gray-100 transition"
+            className="p-2 rounded-full transition"
+            style={{ color: "var(--text-secondary)" }}
           >
-            <X size={20} className="text-gray-700" />
+            <X size={20} />
           </button>
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-semibold text-gray-500 uppercase">Destination</label>
-          <div className="flex items-center gap-3 bg-gray-100 rounded-lg px-4 py-3">
-            <MapPin size={18} className="text-gray-500" />
+          <label className="text-xs font-semibold uppercase" style={{ color: "var(--text-muted)" }}>Destination</label>
+          <div className="flex items-center gap-3 rounded-lg px-4 py-3" style={{ background: "var(--bg-secondary)" }}>
+            <MapPin size={18} style={{ color: "var(--text-secondary)" }} />
             <input
               type="text"
-              className="flex-1 bg-transparent outline-none text-gray-700 placeholder-gray-500"
+              className="flex-1 bg-transparent outline-none placeholder-gray-500"
+              style={{ color: "var(--text-primary)" }}
               placeholder="Search city..."
               value={cityQuery}
               onChange={(e) => setCityQuery(e.target.value)}
@@ -130,11 +136,14 @@ const SearchBar = ({ isAtTop = true }) => {
               {filteredCities.map((city) => (
                 <button
                   key={city}
-                  className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg transition text-left"
+                  className="flex items-center gap-3 p-3 rounded-lg transition text-left"
+                  style={{ color: "var(--text-primary)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-hover)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   onClick={() => handleCitySelect(city)}
                 >
-                  <MapPin size={16} className="text-gray-400" />
-                  <span className="text-gray-700 font-medium">{city}</span>
+                  <MapPin size={16} style={{ color: "var(--text-muted)" }} />
+                  <span className="font-medium">{city}</span>
                 </button>
               ))}
             </div>
@@ -150,11 +159,6 @@ const SearchBar = ({ isAtTop = true }) => {
       </div>
 
       {/* ─── Desktop / Tablet: dynamic search bar ─── */}
-      {/*
-        KEY FIX: `relative` is on this outer wrapper, NOT on the pill itself.
-        The pill has `overflow-hidden` (for border-radius clipping) but the
-        dropdown is rendered as a sibling OUTSIDE the pill, so it is never clipped.
-      */}
       <div
         ref={wrapperRef}
         className="hidden md:block relative transition-all duration-500 ease-in-out"
@@ -162,19 +166,21 @@ const SearchBar = ({ isAtTop = true }) => {
       >
         {/* The pill */}
         <div
-          className="flex items-center w-full rounded-full shadow-sm border border-gray-300 hover:shadow-md bg-white overflow-hidden transition-all duration-500"
+          className="flex items-center w-full rounded-full shadow-sm hover:shadow-md overflow-hidden transition-all duration-500"
           style={{
             height: isAtTop ? "66px" : "46px",
             padding: "0 8px",
+            background: "var(--bg-card)",
+            border: "1px solid var(--border-color)",
           }}
         >
           {isAtTop ? (
-            /* ── Expanded view ── */
             <>
               <div className="flex-1 flex items-center px-6 py-2">
                 <input
                   type="text"
-                  className="flex-1 outline-none bg-transparent text-base text-gray-700 placeholder-gray-400 min-w-0"
+                  className="flex-1 outline-none bg-transparent text-base min-w-0 placeholder-gray-400"
+                  style={{ color: "var(--text-primary)" }}
                   placeholder="Search destinations..."
                   value={cityQuery}
                   onChange={(e) => {
@@ -194,12 +200,12 @@ const SearchBar = ({ isAtTop = true }) => {
               </button>
             </>
           ) : (
-            /* ── Compact (scrolled) view ── */
             <>
-              <SearchIcon size={16} className="text-gray-500 flex-shrink-0 ml-2" />
+              <SearchIcon size={16} className="flex-shrink-0 ml-2" style={{ color: "var(--text-secondary)" }} />
               <input
                 type="text"
-                className="flex-1 outline-none text-sm text-gray-700 placeholder-gray-400 px-3 min-w-0"
+                className="flex-1 outline-none text-sm px-3 min-w-0 placeholder-gray-400 bg-transparent"
+                style={{ color: "var(--text-primary)" }}
                 placeholder="Search destinations..."
                 value={cityQuery}
                 onChange={(e) => {
@@ -220,7 +226,7 @@ const SearchBar = ({ isAtTop = true }) => {
           )}
         </div>
 
-        {/* Dropdown rendered OUTSIDE the overflow-hidden pill — always visible */}
+        {/* Dropdown rendered OUTSIDE the overflow-hidden pill */}
         <SuggestionList />
       </div>
     </div>

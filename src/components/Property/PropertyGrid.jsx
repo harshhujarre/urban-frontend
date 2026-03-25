@@ -20,8 +20,8 @@ export default function PropertyGrid({ properties, loading }) {
   if (properties.length === 0) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-600 text-lg mb-2">No properties found</p>
-        <p className="text-gray-500">Try adjusting your filters</p>
+        <p className="text-lg mb-2" style={{ color: "var(--text-secondary)" }}>No properties found</p>
+        <p style={{ color: "var(--text-muted)" }}>Try adjusting your filters</p>
       </div>
     );
   }
@@ -43,7 +43,6 @@ function PropertyGridCard({ property, onClick }) {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Initialise liked state from likedBy if user is logged in
   const isLikedInitially = user
     ? (property.likedBy || []).some(
         (id) => id === user._id || id?.toString?.() === user._id,
@@ -64,31 +63,21 @@ function PropertyGridCard({ property, onClick }) {
 
   const handleLike = useCallback(
     async (e) => {
-      e.stopPropagation(); // Don't navigate to property detail
-
-      if (!user) {
-        navigate("/login");
-        return;
-      }
-
+      e.stopPropagation();
+      if (!user) { navigate("/login"); return; }
       if (likeLoading) return;
-
-      // Optimistic update
       const newLiked = !liked;
       const newCount = newLiked ? likesCount + 1 : Math.max(0, likesCount - 1);
       setLiked(newLiked);
       setLikesCount(newCount);
       setLikeLoading(true);
-
       try {
         const response = await propertyService.toggleLike(property._id);
-        // apiClient returns data directly (no extra .data wrapper)
         if (response && typeof response.liked !== "undefined") {
           setLiked(response.liked);
           setLikesCount(response.likesCount ?? newCount);
         }
       } catch (error) {
-        // Revert on failure
         setLiked(liked);
         setLikesCount(likesCount);
         console.error("Failed to toggle like:", error);
@@ -102,7 +91,7 @@ function PropertyGridCard({ property, onClick }) {
   return (
     <div className="group cursor-pointer" onClick={onClick}>
       {/* Image */}
-      <div className="relative aspect-[4/3] bg-gray-200 rounded-xl overflow-hidden mb-3">
+      <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-3" style={{ background: "var(--bg-secondary)" }}>
         {property.images && property.images.length > 0 ? (
           <img
             src={property.images[0]}
@@ -110,8 +99,8 @@ function PropertyGridCard({ property, onClick }) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-100">
-            <MapPin className="w-12 h-12 text-gray-300" />
+          <div className="w-full h-full flex items-center justify-center" style={{ background: "var(--bg-hover)" }}>
+            <MapPin className="w-12 h-12" style={{ color: "var(--text-muted)" }} />
           </div>
         )}
 
@@ -121,21 +110,13 @@ function PropertyGridCard({ property, onClick }) {
           disabled={likeLoading}
           title={user ? (liked ? "Unlike" : "Like") : "Login to like"}
           className={`absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full backdrop-blur-sm transition-all duration-200 shadow-md
-            ${
-              liked
-                ? "bg-white text-red-500 hover:bg-red-50"
-                : "bg-white/80 text-gray-600 hover:bg-white hover:text-red-400"
-            }
+            ${liked ? "bg-white text-red-500 hover:bg-red-50" : "bg-white/80 text-gray-600 hover:bg-white hover:text-red-400"}
             ${likeLoading ? "opacity-70 cursor-wait" : "hover:scale-110"}
           `}
         >
-          <Heart
-            className={`w-4 h-4 transition-all duration-200 ${liked ? "fill-red-500 stroke-red-500" : "fill-none"}`}
-          />
+          <Heart className={`w-4 h-4 transition-all duration-200 ${liked ? "fill-red-500 stroke-red-500" : "fill-none"}`} />
           {likesCount > 0 && (
-            <span className="text-xs font-semibold leading-none">
-              {likesCount}
-            </span>
+            <span className="text-xs font-semibold leading-none">{likesCount}</span>
           )}
         </button>
       </div>
@@ -144,17 +125,17 @@ function PropertyGridCard({ property, onClick }) {
       <div>
         {/* Location */}
         <div className="flex items-center gap-1 mb-1">
-          <span className="text-sm font-semibold text-gray-900">
+          <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
             {property.location.city}
             {property.location.state && `, ${property.location.state}`}
           </span>
         </div>
 
-        {/* Title */}
-        <h3 className="text-gray-700 mb-1 line-clamp-1">{property.title}</h3>
+        {/* Host name */}
+        <h3 className="mb-1 line-clamp-1" style={{ color: "var(--text-secondary)" }}>{property.title}</h3>
 
         {/* Details */}
-        <div className="flex items-center gap-3 text-sm text-gray-600 mb-2">
+        <div className="flex items-center gap-3 text-sm mb-2" style={{ color: "var(--text-secondary)" }}>
           <div className="flex items-center gap-1">
             <Bed className="w-4 h-4" />
             <span>{property.bedrooms}</span>
@@ -171,10 +152,10 @@ function PropertyGridCard({ property, onClick }) {
 
         {/* Price */}
         <div className="flex items-baseline gap-1">
-          <span className="text-lg font-semibold text-gray-900">
+          <span className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
             {formatPrice(property.rentAmount || property.pricePerNight || 0)}
           </span>
-          <span className="text-sm text-gray-600">
+          <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
             {property.rentType === "per_person" ? "/ person" : "/ night"}
           </span>
         </div>
@@ -186,10 +167,10 @@ function PropertyGridCard({ property, onClick }) {
 function PropertySkeleton() {
   return (
     <div className="animate-pulse">
-      <div className="aspect-[4/3] bg-gray-200 rounded-xl mb-3" />
-      <div className="h-4 bg-gray-200 rounded w-1/2 mb-2" />
-      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-      <div className="h-4 bg-gray-200 rounded w-1/3" />
+      <div className="aspect-[4/3] rounded-xl mb-3" style={{ background: "var(--bg-hover)" }} />
+      <div className="h-4 rounded w-1/2 mb-2" style={{ background: "var(--bg-hover)" }} />
+      <div className="h-4 rounded w-3/4 mb-2" style={{ background: "var(--bg-hover)" }} />
+      <div className="h-4 rounded w-1/3" style={{ background: "var(--bg-hover)" }} />
     </div>
   );
 }

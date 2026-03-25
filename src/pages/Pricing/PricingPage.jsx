@@ -159,12 +159,13 @@ export default function PricingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+    <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
       {/* Header */}
       <div className="max-w-5xl mx-auto px-4 pt-8 pb-4">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition mb-8"
+          className="flex items-center gap-2 transition mb-8"
+          style={{ color: "var(--text-secondary)" }}
         >
           <ArrowLeft className="w-4 h-4" />
           Back
@@ -177,10 +178,10 @@ export default function PricingPage() {
           <Crown className="w-4 h-4" />
           Choose Your Plan
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
           Upgrade Your Experience
         </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        <p className="text-lg max-w-2xl mx-auto" style={{ color: "var(--text-secondary)" }}>
           Get more contact views, list more properties, and unlock premium
           features to grow your rental business.
         </p>
@@ -209,9 +210,13 @@ export default function PricingPage() {
               key={plan.name}
               className={`relative rounded-2xl p-8 transition-all duration-300 ${
                 plan.highlight
-                  ? "bg-white border-2 border-[#FF5A5F] shadow-xl shadow-red-100/50 scale-[1.02]"
-                  : "bg-white border border-gray-200 shadow-sm hover:shadow-md"
+                  ? "border-2 border-[#FF5A5F] shadow-xl shadow-red-100/50 scale-[1.02]"
+                  : "shadow-sm hover:shadow-md"
               }`}
+              style={{
+                background: "var(--bg-card)",
+                border: plan.highlight ? undefined : "1px solid var(--border-color)",
+              }}
             >
               {/* Popular Badge */}
               {plan.highlight && !isPremium && (
@@ -228,7 +233,7 @@ export default function PricingPage() {
                   {plan.highlight && (
                     <Crown className="w-5 h-5 text-amber-500" />
                   )}
-                  <h3 className="text-xl font-bold text-gray-900">
+                  <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
                     {plan.name}
                   </h3>
                   {plan.isCurrent && (
@@ -238,12 +243,12 @@ export default function PricingPage() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-500 mb-4">{plan.description}</p>
+                <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>{plan.description}</p>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-5xl font-bold text-gray-900">
+                  <span className="text-5xl font-bold" style={{ color: "var(--text-primary)" }}>
                     {plan.price}
                   </span>
-                  <span className="text-gray-500 text-lg">{plan.period}</span>
+                  <span className="text-lg" style={{ color: "var(--text-muted)" }}>{plan.period}</span>
                 </div>
               </div>
 
@@ -266,8 +271,9 @@ export default function PricingPage() {
                     </div>
                     <span
                       className={`text-sm ${
-                        feature.included ? "text-gray-900" : "text-gray-400"
+                        feature.included ? "" : ""
                       }`}
+                      style={{ color: feature.included ? "var(--text-primary)" : "var(--text-muted)" }}
                     >
                       {feature.text}
                     </span>
@@ -324,13 +330,13 @@ export default function PricingPage() {
 
         {/* Trust Section */}
         <div className="mt-16 text-center">
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
             Secure payments powered by
           </p>
-          <div className="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl shadow-sm" style={{ background: "var(--bg-card)", border: "1px solid var(--border-color)" }}>
             <Shield className="w-5 h-5 text-blue-600" />
-            <span className="font-semibold text-gray-700">Razorpay</span>
-            <span className="text-xs text-gray-500 ml-2">
+            <span className="font-semibold" style={{ color: "var(--text-primary)" }}>Razorpay</span>
+            <span className="text-xs ml-2" style={{ color: "var(--text-muted)" }}>
               256-bit SSL encrypted
             </span>
           </div>
