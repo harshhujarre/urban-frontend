@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import propertyService from "../../api/propertyService";
+import { useCachedFetch } from "../../hooks/useCachedFetch";
+import { cache, CACHE_TTL } from "../../utils/cache";
 import PropertyCard from "../../components/Property/PropertyCard";
 import EditPropertyModal from "../../components/Property/EditPropertyModal";
 import {
@@ -27,9 +29,6 @@ import {
 export default function HostDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [properties, setProperties] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [editProperty, setEditProperty] = useState(null);
   const [chartData, setChartData] = useState([]);
 
@@ -39,26 +38,25 @@ export default function HostDashboard() {
   const listingsUsed = user?.propertiesListedThisMonth || 0;
   const canAddMore = listingsUsed < listingLimit;
 
+  // ── Cached fetch for host properties ──────────────────────────────────────
+  const {
+    data: propertiesData,
+    loading,
+    error: fetchError,
+    refresh,
+  } = useCachedFetch(
+    "my_properties",
+    () => propertyService.getMyProperties(),
+    { ttl: CACHE_TTL.MY_PROPERTIES, enabled: !!user }
+  );
+
+  const properties = propertiesData?.data || [];
+  const error      = fetchError ? "Failed to load properties. Please try again." : "";
+
+  // Rebuild chart whenever properties change
   useEffect(() => {
-    loadProperties();
-  }, []);
-
-  const loadProperties = async () => {
-    try {
-      setLoading(true);
-      const data = await propertyService.getMyProperties();
-      setProperties(data.data);
-      setError("");
-
-      // Build chart data from all properties' view history
-      buildChartData(data.data);
-    } catch (error) {
-      console.error("Failed to load properties:", error);
-      setError("Failed to load properties. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (properties.length > 0) buildChartData(properties);
+  }, [properties]);
 
   // Build a 30-day chart from aggregated viewHistory across all properties
   const buildChartData = (props) => {
@@ -96,7 +94,10 @@ export default function HostDashboard() {
   };
 
   const handlePropertyDeleted = (propertyId) => {
-    setProperties(properties.filter((p) => p._id !== propertyId));
+    // Invalidate both my-properties cache and the public listing cache
+    cache.invalidate("my_properties");
+    cache.invalidateByPrefix("properties_");
+    refresh(); // re-fetch from API
   };
 
   // Summary stats
@@ -322,7 +323,11 @@ export default function HostDashboard() {
                 <PropertyCard
                   key={property._id}
                   property={property}
-                  onUpdate={loadProperties}
+                  onUpdate={() => {
+                    cache.invalidate("my_properties");
+                    cache.invalidateByPrefix("properties_");
+                    refresh();
+                  }}
                   onDelete={handlePropertyDeleted}
                   onEdit={(p) => setEditProperty(p)}
                 />
@@ -337,7 +342,11 @@ export default function HostDashboard() {
         <EditPropertyModal
           property={editProperty}
           onClose={() => setEditProperty(null)}
-          onUpdate={loadProperties}
+          onUpdate={() => {
+            cache.invalidate("my_properties");
+            cache.invalidateByPrefix("properties_");
+            refresh();
+          }}
         />
       )}
     </div>

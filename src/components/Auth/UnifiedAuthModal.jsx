@@ -91,11 +91,11 @@ const UnifiedAuthModal = ({ onSuccess }) => {
     try {
       const result = await googleLogin(credentialResponse.credential);
 
-      if (result.isNewUser) {
-        // New user — offer optional phone verification
+      if (!result.user.phoneVerified) {
+        // User doesn't have a verified phone — offer optional phone verification
         setStage("phone-verify");
       } else {
-        // Existing user — logged in, close modal
+        // User already has verified phone — close modal
         onSuccess();
       }
     } catch (error) {

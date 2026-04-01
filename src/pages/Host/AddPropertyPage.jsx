@@ -12,6 +12,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import ImageUploader from "../../components/Property/ImageUploader";
 import propertyService from "../../api/propertyService";
+import { cache } from "../../utils/cache";
 import { useAuth } from "../../context/AuthContext";
 import PhoneVerifyModal from "../../components/Auth/PhoneVerifyModal";
 
@@ -211,6 +212,10 @@ export default function AddPropertyPage() {
       };
 
       await propertyService.createProperty(propertyData);
+
+      // Invalidate caches so host dashboard + home page re-fetch fresh data
+      cache.invalidate("my_properties");
+      cache.invalidateByPrefix("properties_");
 
       // Success! Navigate back to dashboard
       navigate("/host/dashboard");

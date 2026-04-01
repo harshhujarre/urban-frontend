@@ -1,55 +1,50 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 import propertyService from "../../api/propertyService";
 import PropertyGrid from "../../components/Property/PropertyGrid";
 import FilterSidebar from "../../components/Property/FilterSidebar";
 import { useSearch } from "../../hooks/useSearch";
+import { useCachedFetch } from "../../hooks/useCachedFetch";
+import { CACHE_TTL } from "../../utils/cache";
 
 export default function HomePage() {
   const { filters, setFilter, setFilterDebounced, setPage, clearFilters } = useSearch();
-
-  const [properties, setProperties] = useState([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(() => window.innerWidth >= 1024);
 
-  useEffect(() => {
-    loadProperties();
-  }, [
-    filters.q,
-    filters.city,
-    filters.minPrice,
-    filters.maxPrice,
-    filters.bedrooms,
-    filters.guests,
-    filters.amenities.join(","),
-    filters.page,
-  ]);
+  // Build a stable, filter-aware cache key so each unique search is cached separately
+  const cacheKey = "properties_" + JSON.stringify({
+    q:         filters.q        || "",
+    city:      filters.city     || "",
+    minPrice:  filters.minPrice || "",
+    maxPrice:  filters.maxPrice || "",
+    bedrooms:  filters.bedrooms || "",
+    guests:    filters.guests   || "",
+    amenities: filters.amenities.join(","),
+    page:      filters.page     || "1",
+  });
 
-  const loadProperties = async () => {
-    try {
-      setLoading(true);
-      const queryFilters = {};
-      if (filters.q)        queryFilters.q        = filters.q;
-      if (filters.city)     queryFilters.city     = filters.city;
-      if (filters.minPrice) queryFilters.minPrice = filters.minPrice;
-      if (filters.maxPrice) queryFilters.maxPrice = filters.maxPrice;
-      if (filters.bedrooms) queryFilters.bedrooms = filters.bedrooms;
-      if (filters.guests)   queryFilters.guests   = filters.guests;
-      if (filters.amenities.length > 0) queryFilters.amenities = filters.amenities.join(",");
-      queryFilters.page  = filters.page  || "1";
-      queryFilters.limit = "20";
-      const data = await propertyService.getProperties(queryFilters);
-      setProperties(data.data   || []);
-      setTotalPages(data.totalPages || 1);
-      setTotalCount(data.count  || 0);
-    } catch (error) {
-      console.error("Failed to load properties:", error);
-    } finally {
-      setLoading(false);
-    }
+  // Fetcher — only called on cache miss or explicit refresh()
+  const fetcher = async () => {
+    const queryFilters = {};
+    if (filters.q)        queryFilters.q        = filters.q;
+    if (filters.city)     queryFilters.city     = filters.city;
+    if (filters.minPrice) queryFilters.minPrice = filters.minPrice;
+    if (filters.maxPrice) queryFilters.maxPrice = filters.maxPrice;
+    if (filters.bedrooms) queryFilters.bedrooms = filters.bedrooms;
+    if (filters.guests)   queryFilters.guests   = filters.guests;
+    if (filters.amenities.length > 0) queryFilters.amenities = filters.amenities.join(",");
+    queryFilters.page  = filters.page  || "1";
+    queryFilters.limit = "20";
+    return propertyService.getProperties(queryFilters);
   };
+
+  const { data, loading } = useCachedFetch(cacheKey, fetcher, {
+    ttl: CACHE_TTL.PROPERTIES_LIST,
+  });
+
+  const properties = data?.data       || [];
+  const totalPages = data?.totalPages  || 1;
+  const totalCount = data?.count       || 0;
 
   const handleFilterChange = (newFilters) => {
     if (newFilters.city     !== filters.city)     setFilter("city",     newFilters.city);

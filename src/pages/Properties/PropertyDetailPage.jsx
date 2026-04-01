@@ -196,7 +196,11 @@ export default function PropertyDetailPage() {
       setContactRemaining(data.remaining);
     } catch (err) {
       const msg = err.message || "Failed to get contact details";
-      if (msg.includes("limit")) {
+      if (msg.includes("verify your phone")) {
+        // Backend enforced phone verification — show the verify modal
+        setPendingAction("contact");
+        setShowPhoneVerify(true);
+      } else if (msg.includes("limit")) {
         setContactError(
           `Monthly limit reached (${user?.accountType === "premium" ? "10" : "1"} for ${user?.accountType || "free"} accounts). Upgrade to Premium for more!`,
         );
