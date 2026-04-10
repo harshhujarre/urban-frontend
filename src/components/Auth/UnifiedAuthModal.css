@@ -191,7 +191,8 @@
 
 /* ==================== DIVIDER ==================== */
 
-.divider {
+.divider,
+.auth-divider {
   display: flex;
   align-items: center;
   text-align: center;
@@ -199,13 +200,16 @@
 }
 
 .divider::before,
-.divider::after {
+.divider::after,
+.auth-divider::before,
+.auth-divider::after {
   content: "";
   flex: 1;
   border-bottom: 1px solid #d0d0d0;
 }
 
-.divider span {
+.divider span,
+.auth-divider span {
   padding: 0 16px;
   color: #717171;
   font-size: 14px;

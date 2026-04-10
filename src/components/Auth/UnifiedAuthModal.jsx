@@ -6,7 +6,7 @@ import "./UnifiedAuthModal.css";
 
 const UnifiedAuthModal = ({ onSuccess }) => {
   // ==================== STATE MANAGEMENT ====================
-  const [stage, setStage] = useState("initial"); // initial | phone-verify | otp
+  const [stage, setStage] = useState("initial"); // initial | otp-login | phone-verify | otp-link
   const [formData, setFormData] = useState({
     phoneNumber: "",
     otp: "",
@@ -17,7 +17,7 @@ const UnifiedAuthModal = ({ onSuccess }) => {
   const [resendTimer, setResendTimer] = useState(0);
 
   const otpInputRef = useRef(null);
-  const { sendOtp, linkPhone, googleLogin } = useAuth();
+  const { sendOtp, verifyOtp, linkPhone, googleLogin } = useAuth();
 
   // ==================== EFFECTS ====================
 
@@ -111,9 +111,9 @@ const UnifiedAuthModal = ({ onSuccess }) => {
     setError("Google login failed. Please try again.");
   };
 
-  // ==================== PHONE VERIFY FLOW (after Google signup) ====================
+  // ==================== PHONE LOGIN FLOW (primary login) ====================
 
-  const handleSendOtp = async () => {
+  const handleSendOtpLogin = async () => {
     setError("");
 
     const validationError = validatePhone(formData.phoneNumber);
@@ -125,7 +125,7 @@ const UnifiedAuthModal = ({ onSuccess }) => {
     setLoading(true);
     try {
       await sendOtp(formData.phoneNumber);
-      setStage("otp");
+      setStage("otp-login");
       startResendTimer();
     } catch (error) {
       setError(
@@ -136,7 +136,52 @@ const UnifiedAuthModal = ({ onSuccess }) => {
     }
   };
 
-  const handleVerifyOtp = async () => {
+  const handleVerifyOtpLogin = async () => {
+    setError("");
+
+    const validationError = validateOtp(formData.otp);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await verifyOtp(formData.phoneNumber, formData.otp);
+      onSuccess();
+    } catch (error) {
+      setError(error.response?.data?.message || error.message || "Invalid OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ==================== PHONE VERIFY FLOW (after Google signup) ====================
+
+  const handleSendOtpLink = async () => {
+    setError("");
+
+    const validationError = validatePhone(formData.phoneNumber);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await sendOtp(formData.phoneNumber);
+      setStage("otp-link");
+      startResendTimer();
+    } catch (error) {
+      setError(
+        error.response?.data?.message || error.message || "Failed to send OTP",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtpLink = async () => {
     setError("");
 
     const validationError = validateOtp(formData.otp);
@@ -187,9 +232,39 @@ const UnifiedAuthModal = ({ onSuccess }) => {
   const renderInitialStage = () => (
     <div className="auth-stage">
       <h2 className="auth-title">Welcome to UrbanStay</h2>
+
+      <div className="form-group">
+        <label className="form-label">PHONE NUMBER</label>
+        <div className="phone-input-wrapper">
+          <span className="phone-prefix">+91</span>
+          <input
+            type="tel"
+            inputMode="numeric"
+            className="form-input phone-input"
+            placeholder="Enter 10-digit number"
+            value={formData.phoneNumber}
+            onChange={handlePhoneChange}
+            maxLength="10"
+          />
+        </div>
+      </div>
+
       <p className="auth-info">
-        Sign in with your Google account to continue. Quick, easy, and secure.
+        We'll text you to confirm your number. Standard message and data rates
+        apply.
       </p>
+
+      <button
+        className="btn btn-primary btn-block"
+        onClick={handleSendOtpLogin}
+        disabled={loading || formData.phoneNumber.length !== 10}
+      >
+        {loading ? "Sending..." : "Continue"}
+      </button>
+
+      <div className="auth-divider">
+        <span>or</span>
+      </div>
 
       <div className="google-login-wrapper">
         <GoogleLogin
@@ -239,7 +314,7 @@ const UnifiedAuthModal = ({ onSuccess }) => {
 
       <button
         className="btn btn-primary btn-block"
-        onClick={handleSendOtp}
+        onClick={handleSendOtpLink}
         disabled={loading || formData.phoneNumber.length !== 10}
       >
         {loading ? "Sending..." : "Verify Now"}
@@ -255,7 +330,55 @@ const UnifiedAuthModal = ({ onSuccess }) => {
     </div>
   );
 
-  const renderOtpStage = () => (
+  const renderOtpLoginStage = () => (
+    <div className="auth-stage">
+      <div className="otp-header">
+        <p className="otp-sent-to">OTP sent to +91 {formData.phoneNumber}</p>
+        <button
+          className="btn-link"
+          onClick={() => {
+            setStage("initial");
+            setFormData({ ...formData, otp: "" });
+            setError("");
+          }}
+        >
+          Change
+        </button>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Enter 4-Digit OTP</label>
+        <input
+          ref={otpInputRef}
+          type="text"
+          inputMode="numeric"
+          className="form-input otp-input"
+          placeholder="• • • •"
+          value={formData.otp}
+          onChange={handleOtpChange}
+          maxLength="4"
+        />
+      </div>
+
+      <button
+        className="btn btn-primary btn-block"
+        onClick={handleVerifyOtpLogin}
+        disabled={loading || formData.otp.length !== 4}
+      >
+        {loading ? "Verifying..." : "Verify OTP"}
+      </button>
+
+      <button
+        className="btn btn-link"
+        onClick={handleResendOtp}
+        disabled={resendTimer > 0}
+      >
+        {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend OTP"}
+      </button>
+    </div>
+  );
+
+  const renderOtpLinkStage = () => (
     <div className="auth-stage">
       <div className="otp-header">
         <p className="otp-sent-to">OTP sent to +91 {formData.phoneNumber}</p>
@@ -287,7 +410,7 @@ const UnifiedAuthModal = ({ onSuccess }) => {
 
       <button
         className="btn btn-primary btn-block"
-        onClick={handleVerifyOtp}
+        onClick={handleVerifyOtpLink}
         disabled={loading || formData.otp.length !== 4}
       >
         {loading ? "Verifying..." : "Verify OTP"}
@@ -324,8 +447,9 @@ const UnifiedAuthModal = ({ onSuccess }) => {
 
       {/* Stage Rendering */}
       {stage === "initial" && renderInitialStage()}
+      {stage === "otp-login" && renderOtpLoginStage()}
       {stage === "phone-verify" && renderPhoneVerifyStage()}
-      {stage === "otp" && renderOtpStage()}
+      {stage === "otp-link" && renderOtpLinkStage()}
     </div>
   );
 };
